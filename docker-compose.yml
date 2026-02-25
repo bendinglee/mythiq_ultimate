@@ -1,0 +1,60 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: mythiq_ollama
+    environment:
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_KEEP_ALIVE=2m
+      - OLLAMA_CONTEXT_LENGTH=2048
+    ports: ["11434:11434"]
+    volumes:
+      - ./data/ollama:/root/.ollama
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: mythiq_redis
+    ports: ["6379:6379"]
+    volumes:
+      - ./data/redis:/data
+    command: ["redis-server","--appendonly","yes"]
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: mythiq_qdrant
+    ports: ["6333:6333"]
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    restart: unless-stopped
+
+  api:
+    build: ./api
+    container_name: mythiq_api
+    environment:
+      - OLLAMA_NUM_PREDICT=768
+      - OLLAMA_BASE=http://ollama:11434
+      - REDIS_URL=redis://redis:6379/0
+      - QDRANT_URL=http://qdrant:6333
+      - MYTHIQ_DB_PATH=/app/state/mythiq.sqlite
+    ports: ["7777:7777"]
+    volumes:
+      - ./logs:/app/logs
+      - ./api/state:/app/state
+      - ./libs:/app/libs:ro
+    depends_on:
+      - ollama
+      - redis
+      - qdrant
+    restart: unless-stopped
+
+  ui:
+    build: ./ui
+    container_name: mythiq_ui
+    environment:
+      - NEXT_PUBLIC_API_BASE=http://api:7777
+    ports: ["3000:3000"]
+    depends_on:
+      - api
+    restart: unless-stopped
