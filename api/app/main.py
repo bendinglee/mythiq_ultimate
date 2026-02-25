@@ -197,6 +197,15 @@ def readyz() -> Dict[str, Any]:
     return {"ok": True, "uptime_s": int(time.time() - APP_START)}
 
 
+
+@app.get("/v1/debug/paths")
+def debug_paths():
+    return {
+        "DB_PATH": str(DB_PATH),
+        "LOG_DIR": str(LOG_DIR),
+        "EXPORTS_DIR": str(EXPORTS_DIR),
+    }
+
 # --- stable chat contract (v1) + metrics ---
 LOG_DIR = Path(os.environ.get("MYTHIQ_LOG_DIR", str(Path("data/logs"))))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
