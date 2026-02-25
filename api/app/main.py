@@ -939,7 +939,13 @@ def get_pattern(pattern_id: str) -> Dict[str, Any]:
 
 
 @app.put("/v1/patterns/{pattern_id}")
-def put_pattern(pattern_id: str, inp: PatternIn) -> Dict[str, Any]:
+def put_pattern(pattern_id: str, inp: 
+class PatternIn(BaseModel):
+    pattern_id: str = Field(..., min_length=1)
+    system_prompt: str | None = None
+    prefix: str | None = None
+
+PatternIn) -> Dict[str, Any]:
     conn = db()
     conn.execute(
         "INSERT INTO patterns(pattern_id, system_prompt, prefix, updated_ts) VALUES(?,?,?,?) "
