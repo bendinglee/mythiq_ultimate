@@ -267,6 +267,18 @@ def v1_chat(inp: ChatIn):
 
 
 
+
+
+@app.get("/v1/metrics/tail")
+def metrics_tail(n: int = 50):
+    n = max(1, min(int(n), 500))
+    try:
+        if not METRICS_PATH.exists():
+            return {"ok": True, "lines": []}
+        lines = METRICS_PATH.read_text(encoding="utf-8", errors="ignore").splitlines()
+        return {"ok": True, "lines": lines[-n:]}
+    except Exception as e:
+        return {"ok": False, "error": str(e), "lines": []}
 @app.get("/health")
 def health() -> Dict[str, Any]:
     conn = db()
