@@ -368,7 +368,7 @@ def route_v3(inp: RouteV3In):
 # -------------------------
 # Game builder (Phaser 3)
 # -------------------------
-EXPORTS_DIR = Path("/app/state/exports")
+EXPORTS_DIR = Path(os.environ.get("MYTHIQ_EXPORTS_DIR", str(Path("data/exports"))))
 EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 def _safe_slug(x: str) -> str:
