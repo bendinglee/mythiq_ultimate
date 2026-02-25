@@ -1232,6 +1232,12 @@ def game_build(inp: dict):
 
     # --- log this build into generations (for metrics/learning loop) ---
     try:
+        _gid = str(locals().get("game_id", "unknown"))
+        _title = str(inp.get("title", ""))
+        _prompt = str(inp.get("prompt", ""))
+        _dir = str(locals().get("out_dir", locals().get("dir", "")))
+        _zip = str(locals().get("zip_path", locals().get("zip", "")))
+
         conn = db()
         with conn:
             conn.execute(
@@ -1239,14 +1245,19 @@ def game_build(inp: dict):
                 (
                     int(time.time()),
                     "game",
-                    str(inp.get("prompt","")),
-                    str(game_id),
-                    json.dumps({"title": inp.get("title",""), "dir": str(out_dir), "zip": str(zip_path)}, ensure_ascii=False),
+                    _prompt,
+                    _gid,
+                    json.dumps({"title": _title, "dir": _dir, "zip": _zip}, ensure_ascii=False),
                 ),
             )
         conn.close()
-    except Exception:
-        pass
+    except Exception as e:
+        # keep a minimal breadcrumb in metrics.jsonl so failures are visible
+        try:
+            _append_metric({"ts": int(time.time()), "route": "game_build_log", "error": str(e)})
+        except Exception:
+            pass
+
 
     return {"ok": True, **b}
 
