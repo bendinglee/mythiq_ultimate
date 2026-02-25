@@ -1229,6 +1229,25 @@ def game_build(inp: dict):
     prompt = str(inp.get("prompt") or "Make a tiny arcade loop.")
     title = str(inp.get("title") or "Mythiq Game")
     b = build_phaser_game_bundle(title=title, prompt=prompt)
+
+    # --- log this build into generations (for metrics/learning loop) ---
+    try:
+        conn = db()
+        with conn:
+            conn.execute(
+                "INSERT INTO generations(ts, feature, prompt, output, meta_json) VALUES(?,?,?,?,?)",
+                (
+                    int(time.time()),
+                    "game",
+                    str(inp.get("prompt","")),
+                    str(game_id),
+                    json.dumps({"title": inp.get("title",""), "dir": str(out_dir), "zip": str(zip_path)}, ensure_ascii=False),
+                ),
+            )
+        conn.close()
+    except Exception:
+        pass
+
     return {"ok": True, **b}
 
 
