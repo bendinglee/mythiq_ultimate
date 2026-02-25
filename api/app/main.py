@@ -919,6 +919,24 @@ def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
             
             apply_ab_to_library(conn, inp.ab_group)
             decided = True
+        # --- log ab_pick into generations (for metrics/learning loop) ---
+        try:
+            conn2 = db()
+            with conn2:
+                conn2.execute(
+                    "INSERT INTO generations(ts, feature, prompt, output, meta_json) VALUES(?,?,?,?,?)",
+                    (
+                        int(time.time()),
+                        "ab_pick",
+                        str(inp.ab_group),
+                        str(inp.winner),
+                        json.dumps({"inserted": bool(inserted), "decided": bool(decided)}, ensure_ascii=False),
+                    ),
+                )
+            conn2.close()
+        except Exception:
+            pass
+
 
         return {
             "ok": True,
