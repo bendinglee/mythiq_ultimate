@@ -1,9 +1,12 @@
 from __future__ import annotations
+import threading
 
 import os
 import sqlite3
 from pathlib import Path
 import time
+START_TS = time.time()
+
 import json
 import uuid
 from typing import Any, Dict, Optional, List
@@ -53,6 +56,14 @@ DB_PATH = os.environ.get("MYTHIQ_DB_PATH", "mythiq.sqlite")
 
 app = FastAPI(title="Mythiq Ultimate API", version="0.1.0")
 
+
+
+@app.on_event("startup")
+def _startup_warmup():
+    # Enable with: MYTHIQ_WARMUP=1
+    if os.environ.get("MYTHIQ_WARMUP") != "1":
+        return
+    _warmup_ollama_async()
 
 def db() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH)
@@ -184,6 +195,39 @@ LOG_DIR = Path("/app/logs")
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 METRICS_PATH = LOG_DIR / "metrics.jsonl"
 
+
+
+def _warmup_ollama_async() -> None:
+    if os.environ.get("MYTHIQ_WARMUP", "1") not in ("1", "true", "TRUE", "yes", "YES"):
+        return
+
+    def run():
+        t0 = time.time()
+        err = None
+        model = os.environ.get("MYTHIQ_MODEL", "llama3.2:3b")
+        try:
+            payload = {
+                "model": model,
+                "prompt": "warmup",
+                "stream": False,
+                "options": {"temperature": 0.0, "num_predict": 1},
+            }
+            with httpx.Client(timeout=60.0) as client:
+                r = client.post("http://ollama:11434/api/generate", json=payload)
+                r.raise_for_status()
+        except Exception as e:
+            err = str(e)
+
+        ms = int((time.time() - t0) * 1000)
+        _append_metric({
+            "ts": int(time.time()),
+            "route": "warmup",
+            "ms": ms,
+            "model": model,
+            "error": err,
+        })
+
+    threading.Thread(target=run, daemon=True).start()
 class ChatIn(BaseModel):
     prompt: str = Field(..., min_length=1)
     temperature: float = Field(0.7, ge=0.0, le=2.0)
@@ -279,6 +323,40 @@ def metrics_tail(n: int = 50):
         return {"ok": True, "lines": lines[-n:]}
     except Exception as e:
         return {"ok": False, "error": str(e), "lines": []}
+
+
+@app.get("/v1/status")
+def status():
+    """
+    Minimal runtime status snapshot for local ops/UI.
+    """
+    try:
+        lines = []
+        if METRICS_PATH.exists():
+            lines = METRICS_PATH.read_text(encoding="utf-8", errors="ignore").splitlines()
+
+        # scan last occurrences (cheap; file is small locally)
+        last_chat = None
+        last_warm = None
+        for raw in reversed(lines):
+            if last_chat is None and '"route": "/v1/chat"' in raw:
+                last_chat = raw
+            if last_warm is None and '"route": "warmup"' in raw:
+                last_warm = raw
+            if last_chat and last_warm:
+                break
+
+        return {
+            "ok": True,
+            "uptime_s": int(time.time() - START_TS),
+            "model": os.environ.get("MYTHIQ_MODEL") or "llama3.2:3b",
+            "metrics_lines": len(lines),
+            "last_chat": last_chat,
+            "last_warmup": last_warm,
+            "warmup_enabled": (os.environ.get("MYTHIQ_WARMUP") == "1"),
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 @app.get("/health")
 def health() -> Dict[str, Any]:
     conn = db()
