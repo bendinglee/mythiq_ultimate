@@ -44,3 +44,12 @@ __pycache__/
 *.bak
 *.bak.*
 *~ 
+# runtime builds
+/tmp/
+*.zip
+mythiq_runs/
+outputs/
+dist/
+__pycache__/
+*.pyc
+.DS_Store
