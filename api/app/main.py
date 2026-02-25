@@ -60,8 +60,7 @@ def route_request(prompt: str) -> dict:
     return {"feature": top, "confidence": conf, "secondary": secondary, "scores": scores}
 
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://127.0.0.1:11434")
-DB_PATH = Path("/app/state/mythiq.db")
-
+DB_PATH = Path(os.environ.get("MYTHIQ_DB_PATH", str(Path("data/mythiq.db"))))
 app = FastAPI(title="Mythiq Ultimate API", version="0.1.0")
 
 
@@ -199,7 +198,7 @@ def readyz() -> Dict[str, Any]:
 
 
 # --- stable chat contract (v1) + metrics ---
-LOG_DIR = Path("/app/logs")
+LOG_DIR = Path(os.environ.get("MYTHIQ_LOG_DIR", str(Path("data/logs"))))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 METRICS_PATH = LOG_DIR / "metrics.jsonl"
 
