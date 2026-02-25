@@ -52,7 +52,7 @@ def route_request(prompt: str) -> dict:
     return {"feature": top, "confidence": conf, "secondary": secondary, "scores": scores}
 
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://127.0.0.1:11434")
-DB_PATH = os.environ.get("MYTHIQ_DB_PATH", "mythiq.sqlite")
+DB_PATH = Path("/app/state/mythiq.db")
 
 app = FastAPI(title="Mythiq Ultimate API", version="0.1.0")
 
@@ -726,4 +726,181 @@ async def run(inp: RunIn) -> RunOut:
     return RunOut(ok=True, feature=inp.feature, model=inp.model, output=out, ms=int((time.time() - t0) * 1000))
 
 
+# ---------------------------
+# SQLite (runs + pattern stats)
+# ---------------------------
+
+def db_conn() -> sqlite3.Connection:
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(str(DB_PATH))
+    con.row_factory = sqlite3.Row
+    return con
+
+def db_init() -> None:
+    con = db_conn()
+    try:
+        cur = con.cursor()
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS runs (
+          run_id TEXT PRIMARY KEY,
+          ts INTEGER NOT NULL,
+          feature TEXT NOT NULL,
+          pattern_id TEXT,
+          prompt TEXT NOT NULL,
+          output TEXT NOT NULL,
+          ms INTEGER NOT NULL,
+          model TEXT,
+          user_rating INTEGER,
+          implicit_score REAL,
+          ab_winner INTEGER
+        )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_runs_ts ON runs(ts DESC)")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_runs_pattern ON runs(pattern_id)")
+        con.commit()
+    finally:
+        con.close()
+
+@app.on_event("startup")
+def _startup_db():
+    # cheap, safe
+    db_init()
+
+def _now_ts() -> int:
+    return int(time.time())
+
+def _new_id(prefix: str = "r") -> str:
+    # no external deps
+    return f"{prefix}_{_now_ts()}_{os.urandom(6).hex()}"
+
+@app.post("/v1/run")
+def run(inp: dict):
+    """
+    Minimal run logger:
+      - calls /v1/chat (ollama)
+      - stores a run row in sqlite
+    """
+    feature = str(inp.get("feature") or "text")
+    prompt = str(inp.get("prompt") or "")
+    pattern_id = inp.get("pattern_id")
+    pattern_id = None if pattern_id in ("", "null", "None") else (str(pattern_id) if pattern_id is not None else None)
+
+    user_rating = inp.get("user_rating")
+    implicit_score = inp.get("implicit_score")
+    ab_winner = inp.get("ab_winner")
+
+    try:
+        user_rating = int(user_rating) if user_rating is not None else None
+    except Exception:
+        user_rating = None
+    try:
+        implicit_score = float(implicit_score) if implicit_score is not None else None
+    except Exception:
+        implicit_score = None
+    try:
+        ab_winner = int(ab_winner) if ab_winner is not None else None
+    except Exception:
+        ab_winner = None
+
+    # call local python function for chat if available (avoid HTTP self-call)
+    t0 = time.time()
+    model = os.environ.get("MYTHIQ_MODEL") or "llama3.2:3b"
+    out = ""
+    err = None
+    try:
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": float(inp.get("temperature") or 0.2),
+                "num_predict": int(inp.get("max_tokens") or 256),
+            },
+        }
+        with httpx.Client(timeout=120.0) as client:
+            r = client.post("http://ollama:11434/api/generate", json=payload)
+            r.raise_for_status()
+            data = r.json()
+            out = str(data.get("response", ""))
+    except Exception as e:
+        err = str(e)
+        out = f"OLLAMA_ERROR: {err}"
+
+    ms = int((time.time() - t0) * 1000)
+    run_id = _new_id("r")
+
+    # persist
+    con = db_conn()
+    try:
+        con.execute(
+            """INSERT INTO runs
+               (run_id, ts, feature, pattern_id, prompt, output, ms, model, user_rating, implicit_score, ab_winner)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (run_id, _now_ts(), feature, pattern_id, prompt, out, ms, model, user_rating, implicit_score, ab_winner),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    # metric (best effort)
+    try:
+        _append_metric({
+            "ts": _now_ts(),
+            "route": "/v1/run",
+            "ms": ms,
+            "model": model,
+            "error": err,
+            "prompt_chars": len(prompt),
+            "output_chars": len(out),
+        })
+    except Exception:
+        pass
+
+    return {"ok": True, "run_id": run_id, "output": out, "ms": ms, "model": model, "error": err}
+
+@app.get("/v1/library")
+def library(limit: int = 50):
+    limit = max(1, min(int(limit), 500))
+    con = db_conn()
+    try:
+        rows = con.execute(
+            """SELECT run_id, ts, feature, pattern_id, ms, model, user_rating, implicit_score, ab_winner
+               FROM runs
+               ORDER BY ts DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        out = []
+        for r in rows:
+            out.append({
+                "run_id": r["run_id"],
+                "ts": r["ts"],
+                "feature": r["feature"],
+                "pattern_id": r["pattern_id"],
+                "ms": r["ms"],
+                "model": r["model"],
+                "user_rating": r["user_rating"],
+                "implicit_score": r["implicit_score"],
+                "ab_winner": r["ab_winner"],
+                "status": "ok",
+                "last_updated": r["ts"],
+            })
+        return {"ok": True, "rows": out}
+    finally:
+        con.close()
+
+@app.get("/v1/runs/{run_id}")
+def run_get(run_id: str):
+    con = db_conn()
+    try:
+        r = con.execute(
+            """SELECT * FROM runs WHERE run_id = ?""",
+            (run_id,),
+        ).fetchone()
+        if not r:
+            return {"ok": False, "error": "not_found"}
+        d = dict(r)
+        return {"ok": True, "run": d}
+    finally:
+        con.close()
 
