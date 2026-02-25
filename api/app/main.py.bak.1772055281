@@ -1,8 +1,4 @@
 from __future__ import annotations
-import shutil
-
-import zipfile
-
 import threading
 
 import os
@@ -16,8 +12,7 @@ import uuid
 from typing import Any, Dict, Optional, List
 
 import httpx
-from fastapi import FastAPI, Body, Response
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Body
 from pydantic import BaseModel, Field
 
 APP_START = time.time()
@@ -263,23 +258,6 @@ def _append_metric(obj: dict) -> None:
 # =========================
 from typing import Optional, List
 
-
-def _infer_game_download_url(output: str):
-    try:
-        out = str(output or "")
-        if not out.startswith("GAME_BUNDLE_ZIP:"):
-            return None
-        import os
-        bn = os.path.basename(out.split(":", 1)[1].strip())
-        parts = bn.split("_")
-        # expected: g_<ts>_<hex>_...
-        if len(parts) < 3 or parts[0] != "g":
-            return None
-        game_id = "_".join(parts[:3])
-        return f"/v1/game/download/{game_id}"
-    except Exception:
-        return None
-
 class RouteV3In(BaseModel):
     prompt: str
     # optional hints
@@ -361,161 +339,6 @@ def route_v3(inp: RouteV3In):
 # -------------------------
 # Universal pipeline wrapper
 # -------------------------
-
-
-# -------------------------
-# Game builder (Phaser 3)
-# -------------------------
-EXPORTS_DIR = Path("/app/state/exports")
-EXPORTS_DIR.mkdir(parents=True, exist_ok=True)
-
-def _safe_slug(x: str) -> str:
-    import re
-    x = (x or "game").strip().lower()
-    x = re.sub(r'[^a-z0-9]+', '-', x).strip('-')
-    return x[:50] or "game"
-
-def build_phaser_game_bundle(title: str, prompt: str) -> dict:
-    """
-    Generates a minimal Phaser game bundle:
-      - index.html
-      - game.js
-      - style.css
-    Then zips it to /app/state/exports/<id>.zip
-    """
-    gid = _new_id("g")
-    slug = _safe_slug(title or "mythiq-game")
-    outdir = EXPORTS_DIR / f"{gid}_{slug}"
-    outdir.mkdir(parents=True, exist_ok=True)
-
-    (outdir / "style.css").write_text("""html,body{margin:0;padding:0;background:#0b0f14;color:#e6edf3;font-family:system-ui}
-#game{width:100vw;height:100vh} .hud{position:fixed;left:12px;top:12px;font-size:14px;opacity:.9}
-""", encoding="utf-8")
-
-    (outdir / "index.html").write_text(f"""<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>{title}</title>
-  <link rel="stylesheet" href="style.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
-</head>
-<body>
-  <div class="hud"><b>{title}</b><div id="score">score: 0</div></div>
-  <div id="game"></div>
-  <script src="game.js"></script>
-</body>
-</html>
-""", encoding="utf-8")
-
-    # Simple endless “dodge + collect” loop. Upgrade later via LLM-to-spec.
-    (outdir / "game.js").write_text(r"""(() => {
-  const W = 800, H = 600;
-
-  let score = 0;
-  const setScore = (v) => { score = v; document.getElementById("score").textContent = "score: " + score; };
-
-  class MainScene extends Phaser.Scene {
-    constructor(){ super("main"); }
-    preload(){}
-
-    create(){
-      this.cameras.main.setBackgroundColor("#0b0f14");
-
-      this.player = this.add.rectangle(W/2, H-80, 40, 40, 0x4cc9f0);
-      this.physics.add.existing(this.player);
-      this.player.body.setCollideWorldBounds(true);
-
-      this.cursors = this.input.keyboard.createCursorKeys();
-
-      this.orbs = this.physics.add.group();
-      this.haz = this.physics.add.group();
-
-      this.spawnTimer = 0;
-      this.hazTimer = 0;
-
-      setScore(0);
-
-      this.physics.add.overlap(this.player, this.orbs, (p, o) => {
-        o.destroy();
-        setScore(score + 10);
-      });
-
-      this.physics.add.overlap(this.player, this.haz, () => {
-        this.scene.restart();
-      });
-    }
-
-    update(t, dt){
-      const speed = 420;
-      const body = this.player.body;
-      body.setVelocity(0);
-
-      if (this.cursors.left.isDown) body.setVelocityX(-speed);
-      if (this.cursors.right.isDown) body.setVelocityX(speed);
-      if (this.cursors.up.isDown) body.setVelocityY(-speed);
-      if (this.cursors.down.isDown) body.setVelocityY(speed);
-
-      this.spawnTimer += dt;
-      this.hazTimer += dt;
-
-      if (this.spawnTimer > 700){
-        this.spawnTimer = 0;
-        const x = Phaser.Math.Between(30, W-30);
-        const orb = this.add.circle(x, -10, 10, 0x80ff72);
-        this.physics.add.existing(orb);
-        orb.body.setVelocityY(220);
-        orb.body.setCircle(10);
-        this.orbs.add(orb);
-      }
-
-      if (this.hazTimer > 900){
-        this.hazTimer = 0;
-        const x = Phaser.Math.Between(30, W-30);
-        const r = Phaser.Math.Between(14, 24);
-        const hz = this.add.circle(x, -20, r, 0xff4d6d);
-        this.physics.add.existing(hz);
-        hz.body.setVelocityY(320);
-        hz.body.setCircle(r);
-        this.haz.add(hz);
-      }
-
-      // cleanup
-      for (const g of [this.orbs, this.haz]){
-        g.getChildren().forEach(o => {
-          if (o.y > H + 80) o.destroy();
-        });
-      }
-    }
-  }
-
-  const config = {
-    type: Phaser.AUTO,
-    parent: "game",
-    width: W,
-    height: H,
-    physics: { default: "arcade", arcade: { debug: false } },
-    scene: [MainScene],
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
-  };
-
-  new Phaser.Game(config);
-})();
-""", encoding="utf-8")
-
-    zip_path = EXPORTS_DIR / f"{gid}_{slug}.zip"
-    if zip_path.exists():
-      zip_path.unlink()
-
-    import zipfile
-    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as z:
-      for fp in outdir.rglob("*"):
-        if fp.is_file():
-          z.write(fp, arcname=fp.relative_to(outdir))
-
-    return {"game_id": gid, "dir": str(outdir), "zip": str(zip_path), "title": title, "prompt": prompt}
-
 def run_pipeline(feature: str, prompt: str, temperature: float, max_tokens: int) -> Dict[str, Any]:
     """
     Option A foundation:
@@ -561,9 +384,7 @@ def run_pipeline(feature: str, prompt: str, temperature: float, max_tokens: int)
 
             # stubs (wire these next)
             if feature == "games":
-                b = build_phaser_game_bundle(title="Mythiq Game", prompt=prompt)
-                out = "GAME_BUNDLE_ZIP: " + b["zip"]
-
+                out = "NOT_IMPLEMENTED: games pipeline (Phaser generator + sandbox validator)."
             elif feature == "shorts":
                 out = "NOT_IMPLEMENTED: shorts pipeline (SceneDetect + Whisper + scorer + FFmpeg + captions)."
             elif feature == "images":
@@ -669,7 +490,6 @@ def execute(inp: ExecuteIn):
         "route": {"feature": feature, "confidence": confidence, "secondary": r.get("secondary", []), "scores": r.get("scores", {})},
         "run": {"ok": res.get("ok"), "output": res.get("output"), "ms": res.get("ms"), "attempts": res.get("attempts"), "error": res.get("error")},
         "run_id": run_id,
-        "download_url": _infer_game_download_url(res.get("output")),
         "db_debug": {"db_path": db_path, "db_changes": db_changes, "db_count": db_count, "db_err": db_err},
     }
 
@@ -1220,32 +1040,4 @@ def run_get(run_id: str):
         return {"ok": True, "run": d}
     finally:
         con.close()
-
-
-@app.post("/v1/game/build")
-def game_build(inp: dict):
-    prompt = str(inp.get("prompt") or "Make a tiny arcade loop.")
-    title = str(inp.get("title") or "Mythiq Game")
-    b = build_phaser_game_bundle(title=title, prompt=prompt)
-    return {"ok": True, **b}
-
-
-@app.get("/v1/game/download/{game_id}")
-def game_download(game_id: str):
-    # Find matching zip in EXPORTS_DIR
-    try:
-        d = EXPORTS_DIR
-    except Exception:
-        return {"ok": False, "error": "EXPORTS_DIR_missing"}
-
-    zips = sorted(d.glob(f"{game_id}_*.zip"))
-    if not zips:
-        return {"ok": False, "error": "not_found"}
-
-    fp = zips[-1]
-    return FileResponse(
-        path=str(fp),
-        filename=fp.name,
-        media_type="application/zip",
-    )
 

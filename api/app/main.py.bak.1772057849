@@ -271,14 +271,13 @@ def _infer_game_download_url(output: str):
             return None
         import os
         bn = os.path.basename(out.split(":", 1)[1].strip())
-        parts = bn.split("_")
-        # expected: g_<ts>_<hex>_...
-        if len(parts) < 3 or parts[0] != "g":
+        game_id = bn.split("_", 1)[0]
+        if not game_id:
             return None
-        game_id = "_".join(parts[:3])
         return f"/v1/game/download/{game_id}"
     except Exception:
         return None
+
 
 class RouteV3In(BaseModel):
     prompt: str

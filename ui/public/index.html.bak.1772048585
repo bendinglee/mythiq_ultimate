@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mythiq Ultimate</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui; margin: 24px; max-width: 900px; }
+    textarea { width: 100%; height: 140px; }
+    pre { white-space: pre-wrap; background: #f6f6f6; padding: 12px; border-radius: 8px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    select,input,button { padding: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Mythiq Ultimate</h1>
+  <div class="row">
+    <label>Feature:
+      <select id="feature">
+        <option>text</option><option>code</option><option>game</option><option>short</option>
+        <option>image</option><option>doc</option><option>animation</option><option>cartoon</option>
+      </select>
+    </label>
+    <label>Model: <input id="model" value="llama3.2:3b" size="18"/></label>
+    <button id="run">Run</button>
+  </div>
+  <p><textarea id="prompt" placeholder="Type a request..."></textarea></p>
+  <h3>Output</h3>
+  <pre id="out">—</pre>
+
+<script>
+const API = "http://127.0.0.1:7777";
+document.getElementById("run").onclick = async () => {
+  const prompt = document.getElementById("prompt").value.trim();
+  const feature = document.getElementById("feature").value;
+  const model = document.getElementById("model").value.trim() || "llama3.2:8b";
+  if (!prompt) return;
+
+  const out = document.getElementById("out");
+  out.textContent = "Running...";
+  const res = await fetch(API + "/v1/run", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({prompt, feature, model})
+  });
+  if (!res.ok) {
+    out.textContent = "ERROR: " + res.status + " " + await res.text();
+    return;
+  }
+  const data = await res.json();
+  out.textContent = data.output || "(empty)";
+};
+</script>
+</body>
+</html>

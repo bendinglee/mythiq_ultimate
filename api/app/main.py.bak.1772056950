@@ -263,23 +263,6 @@ def _append_metric(obj: dict) -> None:
 # =========================
 from typing import Optional, List
 
-
-def _infer_game_download_url(output: str):
-    try:
-        out = str(output or "")
-        if not out.startswith("GAME_BUNDLE_ZIP:"):
-            return None
-        import os
-        bn = os.path.basename(out.split(":", 1)[1].strip())
-        parts = bn.split("_")
-        # expected: g_<ts>_<hex>_...
-        if len(parts) < 3 or parts[0] != "g":
-            return None
-        game_id = "_".join(parts[:3])
-        return f"/v1/game/download/{game_id}"
-    except Exception:
-        return None
-
 class RouteV3In(BaseModel):
     prompt: str
     # optional hints
@@ -669,7 +652,6 @@ def execute(inp: ExecuteIn):
         "route": {"feature": feature, "confidence": confidence, "secondary": r.get("secondary", []), "scores": r.get("scores", {})},
         "run": {"ok": res.get("ok"), "output": res.get("output"), "ms": res.get("ms"), "attempts": res.get("attempts"), "error": res.get("error")},
         "run_id": run_id,
-        "download_url": _infer_game_download_url(res.get("output")),
         "db_debug": {"db_path": db_path, "db_changes": db_changes, "db_count": db_count, "db_err": db_err},
     }
 

@@ -16,8 +16,7 @@ import uuid
 from typing import Any, Dict, Optional, List
 
 import httpx
-from fastapi import FastAPI, Body, Response
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Body
 from pydantic import BaseModel, Field
 
 APP_START = time.time()
@@ -262,23 +261,6 @@ def _append_metric(obj: dict) -> None:
 # Router v3 + Pipeline Core
 # =========================
 from typing import Optional, List
-
-
-def _infer_game_download_url(output: str):
-    try:
-        out = str(output or "")
-        if not out.startswith("GAME_BUNDLE_ZIP:"):
-            return None
-        import os
-        bn = os.path.basename(out.split(":", 1)[1].strip())
-        parts = bn.split("_")
-        # expected: g_<ts>_<hex>_...
-        if len(parts) < 3 or parts[0] != "g":
-            return None
-        game_id = "_".join(parts[:3])
-        return f"/v1/game/download/{game_id}"
-    except Exception:
-        return None
 
 class RouteV3In(BaseModel):
     prompt: str
@@ -669,7 +651,6 @@ def execute(inp: ExecuteIn):
         "route": {"feature": feature, "confidence": confidence, "secondary": r.get("secondary", []), "scores": r.get("scores", {})},
         "run": {"ok": res.get("ok"), "output": res.get("output"), "ms": res.get("ms"), "attempts": res.get("attempts"), "error": res.get("error")},
         "run_id": run_id,
-        "download_url": _infer_game_download_url(res.get("output")),
         "db_debug": {"db_path": db_path, "db_changes": db_changes, "db_count": db_count, "db_err": db_err},
     }
 
@@ -1228,24 +1209,4 @@ def game_build(inp: dict):
     title = str(inp.get("title") or "Mythiq Game")
     b = build_phaser_game_bundle(title=title, prompt=prompt)
     return {"ok": True, **b}
-
-
-@app.get("/v1/game/download/{game_id}")
-def game_download(game_id: str):
-    # Find matching zip in EXPORTS_DIR
-    try:
-        d = EXPORTS_DIR
-    except Exception:
-        return {"ok": False, "error": "EXPORTS_DIR_missing"}
-
-    zips = sorted(d.glob(f"{game_id}_*.zip"))
-    if not zips:
-        return {"ok": False, "error": "not_found"}
-
-    fp = zips[-1]
-    return FileResponse(
-        path=str(fp),
-        filename=fp.name,
-        media_type="application/zip",
-    )
 

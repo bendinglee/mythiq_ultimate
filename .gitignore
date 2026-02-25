@@ -30,3 +30,12 @@ data/qdrant/
 
 # Ollama model cache (very large)
 data/ollama/
+# runtime builds
+/tmp/
+*.zip
+mythiq_runs/
+outputs/
+dist/
+__pycache__/
+*.pyc
+.DS_Store
