@@ -27,6 +27,8 @@ rm -rf "$DIR"
 mkdir -p "$DIR"
 unzip -o "$ZIP" -d "$DIR" >/dev/null
 
+./scripts/validate_game_export.sh "$DIR"
+
 # free port
 lsof -ti ":$PORT" | xargs kill -9 2>/dev/null || true
 
