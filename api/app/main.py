@@ -840,6 +840,12 @@ class AbPickIn(BaseModel):
     user_rating: float | None = Field(None, ge=0.0, le=5.0)
     voter_id: str | None = Field(None, min_length=1)
 
+
+class PatternIn(BaseModel):
+    pattern_id: str = Field(..., min_length=1)
+    system_prompt: str | None = None
+    prefix: str | None = None
+
 @app.post("/v1/ab_pick")
 def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
     conn = db()
@@ -940,10 +946,6 @@ def get_pattern(pattern_id: str) -> Dict[str, Any]:
 
 @app.put("/v1/patterns/{pattern_id}")
 def put_pattern(pattern_id: str, inp: 
-class PatternIn(BaseModel):
-    pattern_id: str = Field(..., min_length=1)
-    system_prompt: str | None = None
-    prefix: str | None = None
 
 PatternIn) -> Dict[str, Any]:
     conn = db()
