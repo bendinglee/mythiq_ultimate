@@ -53,3 +53,6 @@ dist/
 __pycache__/
 *.pyc
 .DS_Store
+
+# generated outputs
+exports/
