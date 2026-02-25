@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+logs/
+*.log
+
+# Local state / databases
+*.db
+*.sqlite
+*.sqlite3
+api/state/
+data/
+ui/server.js.bak.*
+
+# Secrets / keys
+*.key
+*.pem
+*.p12
+*.pfx
+id_ed25519
+id_ed25519.pub
+
+# Redis/Qdrant runtime
+data/redis/
+data/qdrant/
+
+# Ollama model cache (very large)
+data/ollama/
