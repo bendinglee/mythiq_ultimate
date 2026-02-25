@@ -1254,7 +1254,31 @@ def game_download(game_id: str):
 
 @app.get("/v1/metrics")
 def v1_metrics():
-    return {**mythiq_db.metrics(), "last_20": mythiq_db.last_builds(20)}
+    conn = db()
+    try:
+        total = int(conn.execute("SELECT COUNT(*) FROM generations").fetchone()[0])
+        # if you want: count by feature
+        rows = conn.execute(
+            "SELECT feature, COUNT(*) AS n FROM generations GROUP BY feature ORDER BY n DESC"
+        ).fetchall()
+        by_feature = {r[0]: int(r[1]) for r in rows}
+        # last 20
+        last = conn.execute(
+            "SELECT ts, feature, substr(prompt,1,200) AS prompt, length(output) AS out_chars "
+            "FROM generations ORDER BY id DESC LIMIT 20"
+        ).fetchall()
+        last_20 = [
+            {"ts": int(r[0]), "feature": r[1], "prompt": r[2], "out_chars": int(r[3])}
+            for r in last
+        ]
+    finally:
+        conn.close()
+
+    return {
+        "total_generations": total,
+        "by_feature": by_feature,
+        "last_20": last_20,
+    }
 
 
 def _log_game_build(game_id: str, title: str, prompt: str, started: float, status: str, error: str | None = None) -> None:
