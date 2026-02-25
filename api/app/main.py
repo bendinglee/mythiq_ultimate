@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sqlite3
+from pathlib import Path
 import time
 import json
 import uuid
@@ -176,6 +177,94 @@ class RunOut(BaseModel):
 @app.get("/readyz")
 def readyz() -> Dict[str, Any]:
     return {"ok": True, "uptime_s": int(time.time() - APP_START)}
+
+
+# --- stable chat contract (v1) + metrics ---
+LOG_DIR = Path("/app/logs")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+METRICS_PATH = LOG_DIR / "metrics.jsonl"
+
+class ChatIn(BaseModel):
+    prompt: str = Field(..., min_length=1)
+    temperature: float = Field(0.7, ge=0.0, le=2.0)
+    max_tokens: int = Field(256, ge=1, le=4096)
+    seed: int | None = None
+
+class ChatOut(BaseModel):
+    ok: bool
+    output: str
+    ms: int
+    model: str | None = None
+    prompt_chars: int
+    output_chars: int
+
+def _append_metric(obj: dict) -> None:
+    # best-effort: never break requests due to logging
+    try:
+        METRICS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with METRICS_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(obj, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+@app.post("/v1/chat", response_model=ChatOut)
+def v1_chat(inp: ChatIn):
+    t0 = time.time()
+
+
+    # Call Ollama directly (stable wiring)
+    model = os.environ.get("MYTHIQ_MODEL", "llama3.2:3b")
+
+    payload = {
+        "model": model,
+        "prompt": inp.prompt,
+        "stream": False,
+        "options": {
+            "temperature": float(inp.temperature),
+            "num_predict": int(inp.max_tokens),
+        }
+    }
+    if inp.seed is not None:
+        payload["options"]["seed"] = int(inp.seed)
+
+    out = ""
+    err = None
+    try:
+        # inside compose network: service name "ollama"
+        with httpx.Client(timeout=60.0) as client:
+            r = client.post("http://ollama:11434/api/generate", json=payload)
+            r.raise_for_status()
+            data = r.json()
+            out = str(data.get("response", ""))
+    except Exception as e:
+        err = str(e)
+        out = f"OLLAMA_ERROR: {err}"
+
+
+    ms = int((time.time() - t0) * 1000)
+
+    resp = {
+        "ok": True,
+        "output": str(out),
+        "ms": ms,
+        "model": model,
+        "prompt_chars": len(inp.prompt),
+        "output_chars": len(str(out)),
+    }
+
+    _append_metric({
+        "ts": int(time.time()),
+        "route": "/v1/chat",
+        "ms": ms,
+        "prompt_chars": resp["prompt_chars"],
+        "output_chars": resp["output_chars"],
+        "model": model,
+        "error": err,
+
+    })
+
+    return resp
+
 
 
 @app.get("/health")
