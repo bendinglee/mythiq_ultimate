@@ -61,7 +61,7 @@ def route_request(prompt: str) -> dict:
 
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://127.0.0.1:11434")
 DB_PATH = Path(os.environ.get("MYTHIQ_DB_PATH", str(Path("data/mythiq.db"))))
-app = FastAPI(title="Mythiq Ultimate API", version="0.1.0", openapi_url=None, docs_url=None, redoc_url=None)
+app = FastAPI(title="Mythiq Ultimate API", version="0.1.0")
 @app.on_event("startup")
 def _startup_warmup():
     # Enable with: MYTHIQ_WARMUP=1
