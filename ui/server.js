@@ -6,7 +6,7 @@ app.use(express.urlencoded({ extended: true })); // <-- enable HTML form posts
 app.use(express.static("public"));
 
 function apiBase() {
-  return process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:7777";
+  return process.env.NEXT_PUBLIC_API_BASE || "http://api:7777";
 }
 
 function esc(s) {
@@ -113,6 +113,63 @@ app.post("/library/run", async (req, res) => {
     res.redirect(302, "/library");
   } catch (e) {
     res.status(500).type("text/plain").send(String(e));
+  }
+});
+
+
+
+// ---- API proxy helpers (browser -> UI -> API) ----
+app.post("/chat", async (req, res) => {
+  const API = apiBase();
+  try {
+    const payload = {
+      prompt: req.body?.prompt ?? "",
+      temperature: req.body?.temperature ?? 0.2,
+      max_tokens: req.body?.max_tokens ?? 256,
+    };
+    const r = await fetch(`${API}/v1/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const j = await r.json();
+    res.json(j);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e) });
+  }
+});
+
+app.get("/status", async (_req, res) => {
+  const API = apiBase();
+  try {
+    const r = await fetch(`${API}/v1/status`);
+    const j = await r.json();
+    res.json(j);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e) });
+  }
+});
+
+app.get("/metrics", async (req, res) => {
+  const API = apiBase();
+  const n = Number(req.query?.n ?? 50);
+  try {
+    const r = await fetch(`${API}/v1/metrics/tail?n=${encodeURIComponent(String(n))}`);
+    const j = await r.json();
+    res.json(j);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e) });
+  }
+});
+
+app.post("/warmup", async (_req, res) => {
+  const API = apiBase();
+  try {
+    const r = await fetch(`${API}/v1/warmup`, { method: "POST" });
+    const j = await r.json();
+    res.json(j);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: String(e) });
   }
 });
 
