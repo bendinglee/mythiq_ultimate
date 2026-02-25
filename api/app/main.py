@@ -924,7 +924,7 @@ def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
             "ok": True,
             "ab_group": inp.ab_group,
             "winner": winner if decided else None,
-            "picked": inp.winner,\n
+            "picked": inp.winner,
             "votes": {"A": a, "B": b},
             "inserted": inserted,
             "decided": decided,
