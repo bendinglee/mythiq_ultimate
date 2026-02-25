@@ -62,6 +62,22 @@ def route_request(prompt: str) -> dict:
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://127.0.0.1:11434")
 DB_PATH = Path(os.environ.get("MYTHIQ_DB_PATH", str(Path("data/mythiq.db"))))
 app = FastAPI(title="Mythiq Ultimate API", version="0.1.0")
+
+
+def _pydantic_rebuild_all_models() -> None:
+    """
+    Fail fast if any Pydantic models have unresolved ForwardRefs.
+    Prevents OpenAPI 500s at runtime.
+    """
+    try:
+        for obj in list(globals().values()):
+            if isinstance(obj, type) and hasattr(obj, "model_rebuild"):
+                obj.model_rebuild(force=True)
+    except Exception as e:
+        raise RuntimeError(f"Pydantic model rebuild failed: {e}") from e
+
+
+
 @app.on_event("startup")
 def _startup_warmup():
     # Enable with: MYTHIQ_WARMUP=1
