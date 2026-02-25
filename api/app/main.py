@@ -836,6 +836,13 @@ def route(inp: RunIn) -> Dict[str, Any]:
 
 
 
+
+class AbPickIn(BaseModel):
+    ab_group: str = Field(..., min_length=1)
+    winner: str = Field(..., pattern="^(A|B)$")  # vote for A or B
+    user_rating: float | None = Field(None, ge=0.0, le=5.0)
+    voter_id: str | None = Field(None, min_length=1)
+
 @app.post("/v1/ab_pick")
 def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
     conn = db()
