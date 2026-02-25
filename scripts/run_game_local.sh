@@ -18,11 +18,13 @@ PY
 )"
 
 # download zip into repo exports (persisted)
-ZIP="exports/runs/$GID.zip"
+BASE="${BASE:-$HOME/.mythiq/exports}"
+mkdir -p "$BASE"
+ZIP="$BASE/$GID.zip"
 curl -fsS -L "$API/v1/game/download/$GID" -o "$ZIP"
 
 # unzip into repo exports (persisted)
-DIR="exports/runs/$GID"
+DIR="$BASE/$GID"
 rm -rf "$DIR"
 mkdir -p "$DIR"
 unzip -o "$ZIP" -d "$DIR" >/dev/null
