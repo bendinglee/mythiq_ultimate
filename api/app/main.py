@@ -357,6 +357,12 @@ def status():
         }
     except Exception as e:
         return {"ok": False, "error": str(e)}
+
+@app.post("/v1/warmup")
+def warmup():
+    _warmup_ollama_async()
+    return {"ok": True, "started": True}
+
 @app.get("/health")
 def health() -> Dict[str, Any]:
     conn = db()
