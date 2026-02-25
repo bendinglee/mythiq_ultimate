@@ -1,5 +1,8 @@
 from __future__ import annotations
 import shutil
+import time
+from datetime import datetime, timezone
+from api.app import db as mythiq_db
 
 import zipfile
 
@@ -1248,4 +1251,27 @@ def game_download(game_id: str):
         filename=fp.name,
         media_type="application/zip",
     )
+
+
+@app.get("/v1/metrics")
+def v1_metrics():
+    return {**mythiq_db.metrics(), "last_20": mythiq_db.last_builds(20)}
+
+
+def _log_game_build(game_id: str, title: str, prompt: str, started: float, status: str, error: str | None = None) -> None:
+    try:
+        created_at = datetime.now(timezone.utc).isoformat()
+        duration_ms = int((time.time() - started) * 1000)
+        mythiq_db.log_game_build(
+            game_id=game_id,
+            title=title,
+            prompt=prompt,
+            created_at=created_at,
+            duration_ms=duration_ms,
+            status=status,
+            error=error,
+        )
+    except Exception:
+        # logging must never break the pipeline
+        pass
 
