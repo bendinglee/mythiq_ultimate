@@ -54,3 +54,39 @@ assert "ts,feature,key,reward,meta_json" in txt
 assert "smoke:decide_check:A" in txt
 print("OUTCOME_OK")
 '
+
+
+# pattern AB routing contract
+PAT="pattern_smoke_1"
+# set variants
+curl -fsS "$BASE/v1/pattern/variant/set" -H "content-type: application/json" \
+  -d '{"pattern_id":"'"$PAT"'","variant":"A","system_prompt":"SYS_A","prefix":"PRE_A"}' >/dev/null
+curl -fsS "$BASE/v1/pattern/variant/set" -H "content-type: application/json" \
+  -d '{"pattern_id":"'"$PAT"'","variant":"B","system_prompt":"SYS_B","prefix":"PRE_B"}' >/dev/null
+
+# vote A a few times to decide
+for i in 1 2 3; do
+  curl -fsS "$BASE/v1/pattern/render" -H "content-type: application/json" \
+    -d '{"pattern_id":"'"$PAT"'","ab_group":"'"$PAT"'","prompt":"hello","winner":"A","user_rating":5,"voter_id":"p'"$i"'"}' >/dev/null
+done
+
+# now call without vote; should be decided + variant A
+curl -fsS "$BASE/v1/pattern/render" -H "content-type: application/json" \
+  -d '{"pattern_id":"'"$PAT"'","ab_group":"'"$PAT"'","prompt":"hello"}' \
+| python3 -c '
+import json,sys
+j=json.load(sys.stdin)
+assert j["ok"] is True
+assert j["decided"] is True
+assert j["variant"] == "A"
+assert "SYS_A" in j["rendered"]
+print("PATTERN_OK")
+'
+
+# confirm generations export contains pattern_render rows
+curl -fsS "$BASE/v1/generations/export?limit=50" | python3 -c '
+import sys
+txt=sys.stdin.read()
+assert "pattern_render" in txt
+print("PATTERN_LOG_OK")
+'
