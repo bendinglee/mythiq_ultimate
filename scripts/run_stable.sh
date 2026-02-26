@@ -4,6 +4,15 @@ BASE="${BASE:-http://127.0.0.1:7777}"
 PIDFILE=".uvicorn.pid"
 LOG="logs/uvicorn.log"
 
+wait_readyz() {
+  # wait up to ~6s for readyz
+  for i in $(seq 1 30); do
+    curl -fsS "$BASE/readyz" >/dev/null && return 0
+    sleep 0.2
+  done
+  return 1
+}
+
 stop() {
   if test -f "$PIDFILE"; then
     kill "$(cat "$PIDFILE")" 2>/dev/null || true
@@ -19,7 +28,12 @@ case "${1:-}" in
       python3 -m uvicorn api.app.main:app --host 127.0.0.1 --port 7777 --workers 1 --no-access-log \
       >>"$LOG" 2>&1 &
     echo $! > "$PIDFILE"
-    echo "STARTED pid=$(cat "$PIDFILE") log=$LOG"
+    if wait_readyz; then
+      echo "STARTED pid=$(cat "$PIDFILE") log=$LOG READYZ_OK"
+    else
+      echo "STARTED pid=$(cat "$PIDFILE") log=$LOG READYZ_FAIL"
+      exit 1
+    fi
     ;;
   stop)
     stop
@@ -28,7 +42,7 @@ case "${1:-}" in
   status)
     if test -f "$PIDFILE" && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
       echo "RUNNING pid=$(cat "$PIDFILE")"
-      curl -fsS "$BASE/readyz" >/dev/null && echo "READYZ_OK" || echo "READYZ_FAIL"
+      if wait_readyz; then echo "READYZ_OK"; else echo "READYZ_FAIL"; exit 1; fi
       exit 0
     fi
     echo "NOT_RUNNING"
