@@ -867,8 +867,7 @@ class AbPickOut(BaseModel):
     votes: dict[str, int]
     inserted: bool
     decided: bool
-    idempotent: bool | None = None
-
+    idempotent: bool = False
 class PatternIn(BaseModel):
     pattern_id: str = Field(..., min_length=1)
     system_prompt: str | None = None
@@ -979,7 +978,8 @@ def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
             "picked": inp.winner,
             "votes": {"A": a, "B": b},
             "inserted": inserted,
-            "decided": decided,
+            "decided": decided,            "idempotent": False,
+
         }
     finally:
         conn.close()
