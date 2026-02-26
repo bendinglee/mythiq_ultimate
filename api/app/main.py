@@ -1567,6 +1567,45 @@ def pattern_variant_get(pattern_id: str, variant: str):
         conn.close()
 
 
+@app.get("/v1/ab_decision/get")
+def ab_decision_get(ab_group: str):
+    conn = db()
+    try:
+        row = conn.execute(
+            "SELECT winner, decided_ts, votes_a, votes_b FROM ab_decisions WHERE ab_group=?",
+            (str(ab_group),),
+        ).fetchone()
+        if not row:
+            return {"ok": False, "ab_group": ab_group, "winner": None, "decided_ts": None, "votes": None}
+        return {
+            "ok": True,
+            "ab_group": ab_group,
+            "winner": row[0],
+            "decided_ts": int(row[1]),
+            "votes": {"A": int(row[2]), "B": int(row[3])},
+        }
+    finally:
+        conn.close()
+
+
+@app.get("/v1/pattern/variant/list")
+def pattern_variant_list(pattern_id: str):
+    conn = db()
+    try:
+        rows = conn.execute(
+            "SELECT variant, updated_ts FROM pattern_variants WHERE pattern_id=? ORDER BY variant",
+            (str(pattern_id),),
+        ).fetchall()
+        return {
+            "ok": True,
+            "pattern_id": str(pattern_id),
+            "variants": [{"variant": r[0], "updated_ts": int(r[1])} for r in rows],
+        }
+    finally:
+        conn.close()
+
+
+
 @app.post("/v1/pattern/render", response_model=PatternRenderOut)
 def pattern_render(inp: PatternRenderIn):
     # Choose a variant based on AB decision once decided. Otherwise pick A by default.
