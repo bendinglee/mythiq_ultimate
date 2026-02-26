@@ -1443,3 +1443,26 @@ def _log_game_build(game_id: str, title: str, prompt: str, started: float, statu
         # logging must never break the pipeline
         pass
 
+
+
+@app.get("/v1/generations/export")
+def generations_export(limit: int = 200):
+    # CSV export for offline analysis/training
+    conn = db()
+    try:
+        rows = conn.execute(
+            "SELECT ts, feature, prompt, output, meta_json FROM generations ORDER BY ts DESC LIMIT ?",
+            (int(limit),),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    import csv
+    import io
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["ts","feature","prompt","output","meta_json"])
+    for r in rows:
+        w.writerow([r[0], r[1], r[2], r[3], r[4]])
+    return Response(content=buf.getvalue(), media_type="text/csv")
+
