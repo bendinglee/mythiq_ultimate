@@ -40,3 +40,17 @@ assert j.get("idempotent") is True
 assert j.get("inserted") is False
 print("DECIDE_OK")
 '
+
+
+# outcomes contract: POST /v1/outcome inserts and export returns the row
+curl -fsS "$BASE/v1/outcome" \
+  -H "content-type: application/json" \
+  -d '{"feature":"ab_pick","key":"smoke:decide_check:A","reward":1.0,"meta":{"smoke":true}}' >/dev/null
+
+curl -fsS "$BASE/v1/outcomes/export?limit=5" | python3 -c '
+import sys
+txt=sys.stdin.read()
+assert "ts,feature,key,reward,meta_json" in txt
+assert "smoke:decide_check:A" in txt
+print("OUTCOME_OK")
+'
