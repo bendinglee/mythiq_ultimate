@@ -857,12 +857,24 @@ class AbPickIn(BaseModel):
     voter_id: str | None = Field(None, min_length=1)
 
 
+
+
+class AbPickOut(BaseModel):
+    ok: bool
+    ab_group: str
+    winner: str | None
+    picked: str
+    votes: dict[str, int]
+    inserted: bool
+    decided: bool
+    idempotent: bool | None = None
+
 class PatternIn(BaseModel):
     pattern_id: str = Field(..., min_length=1)
     system_prompt: str | None = None
     prefix: str | None = None
 
-@app.post("/v1/ab_pick")
+@app.post("/v1/ab_pick", response_model=AbPickOut)
 def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
     conn = db()
     now = int(time.time())
@@ -876,6 +888,7 @@ def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
             return {
                 "ok": True,
                 "ab_group": inp.ab_group,
+                "picked": dec[0],
                 "winner": dec[0],
                 "votes": {"A": dec[1], "B": dec[2]},
                 "idempotent": True,
