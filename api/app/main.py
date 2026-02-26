@@ -142,6 +142,19 @@ def db() -> sqlite3.Connection:
     )
     """)
 
+    # pattern variants for A/B tests
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pattern_variants(
+          pattern_id TEXT NOT NULL,
+          variant TEXT NOT NULL,
+          system_prompt TEXT,
+          prefix TEXT,
+          updated_ts INTEGER NOT NULL,
+          PRIMARY KEY(pattern_id, variant)
+        );
+        """
+    )
     # pattern library status table (promotion/demotion)
     conn.execute("""
     CREATE TABLE IF NOT EXISTS library(
