@@ -211,6 +211,13 @@ def readyz() -> Dict[str, Any]:
 
 
 
+
+
+@app.get("/v1/schema/health")
+def schema_health():
+    _pydantic_rebuild_all_models()
+    return {"ok": True}
+
 @app.get("/v1/debug/paths")
 def debug_paths():
     return {
