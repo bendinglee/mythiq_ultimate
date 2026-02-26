@@ -874,6 +874,27 @@ class PatternIn(BaseModel):
     system_prompt: str | None = None
     prefix: str | None = None
 
+
+
+class GameBuildOut(BaseModel):
+    ok: bool
+    game_id: str
+    dir: str
+    zip: str
+    title: str
+    prompt: str
+
+class MetricsLastRow(BaseModel):
+    ts: int
+    feature: str
+    prompt: str
+    out_chars: int
+
+class MetricsOut(BaseModel):
+    total_generations: int
+    by_feature: dict[str, int]
+    last_20: list[MetricsLastRow]
+
 @app.post("/v1/ab_pick", response_model=AbPickOut)
 def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
     conn = db()
@@ -1293,7 +1314,7 @@ def run_get(run_id: str):
         con.close()
 
 
-@app.post("/v1/game/build")
+@app.post("/v1/game/build", response_model=GameBuildOut)
 def game_build(inp: dict):
     prompt = str(inp.get("prompt") or "Make a tiny arcade loop.")
     title = str(inp.get("title") or "Mythiq Game")
@@ -1351,7 +1372,7 @@ def game_download(game_id: str):
     )
 
 
-@app.get("/v1/metrics")
+@app.get("/v1/metrics", response_model=MetricsOut)
 def v1_metrics():
     conn = db()
     try:
