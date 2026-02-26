@@ -917,6 +917,40 @@ class OutcomeOut(BaseModel):
     ok: bool
     inserted: bool
 
+
+
+class PatternVariantIn(BaseModel):
+    pattern_id: str
+    variant: str  # e.g. "A" or "B"
+    system_prompt: str | None = None
+    prefix: str | None = None
+
+class PatternVariantOut(BaseModel):
+    ok: bool
+    inserted: bool
+
+class PatternVariantGetOut(BaseModel):
+    ok: bool
+    pattern_id: str
+    variant: str
+    system_prompt: str | None = None
+    prefix: str | None = None
+
+class PatternRenderIn(BaseModel):
+    pattern_id: str
+    ab_group: str  # group used by ab_pick (typically same as pattern_id)
+    prompt: str
+    voter_id: str | None = None  # used for voting/decision process
+    winner: str | None = None    # optional vote signal, forwarded to ab_pick if provided
+    user_rating: float | None = None
+
+class PatternRenderOut(BaseModel):
+    ok: bool
+    pattern_id: str
+    variant: str
+    decided: bool
+    rendered: str
+
 class AbPickOut(BaseModel):
     ok: bool
     ab_group: str
@@ -1480,6 +1514,123 @@ def _log_game_build(game_id: str, title: str, prompt: str, started: float, statu
 
 
 
+
+
+
+@app.post("/v1/pattern/variant/set", response_model=PatternVariantOut)
+def pattern_variant_set(inp: PatternVariantIn):
+    conn = db()
+    try:
+        with conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO pattern_variants(pattern_id, variant, system_prompt, prefix, updated_ts) VALUES(?,?,?,?,?)",
+                (str(inp.pattern_id), str(inp.variant), inp.system_prompt, inp.prefix, int(time.time())),
+            )
+        return {"ok": True, "inserted": True}
+    finally:
+        conn.close()
+
+
+@app.get("/v1/pattern/variant/get", response_model=PatternVariantGetOut)
+def pattern_variant_get(pattern_id: str, variant: str):
+    conn = db()
+    try:
+        row = conn.execute(
+            "SELECT pattern_id, variant, system_prompt, prefix FROM pattern_variants WHERE pattern_id=? AND variant=?",
+            (str(pattern_id), str(variant)),
+        ).fetchone()
+        if not row:
+            return {"ok": False, "pattern_id": pattern_id, "variant": variant, "system_prompt": None, "prefix": None}
+        return {"ok": True, "pattern_id": row[0], "variant": row[1], "system_prompt": row[2], "prefix": row[3]}
+    finally:
+        conn.close()
+
+
+@app.post("/v1/pattern/render", response_model=PatternRenderOut)
+def pattern_render(inp: PatternRenderIn):
+    # Choose a variant based on AB decision once decided. Otherwise pick A by default.
+    # Also optionally forward a vote signal to /v1/ab_pick by calling the function directly (no HTTP).
+    ab_group = str(inp.ab_group)
+    decided = False
+    chosen = "A"
+
+    # If caller provided a vote, register it via ab_pick logic
+    if inp.winner is not None:
+        # ab_pick is an in-process function in this file; call it directly for atomicity + speed.
+        res = ab_pick(
+            AbPickIn(
+                ab_group=ab_group,
+                winner=str(inp.winner),
+                user_rating=float(inp.user_rating) if inp.user_rating is not None else None,
+                voter_id=str(inp.voter_id) if inp.voter_id is not None else "pattern_render",
+            )
+        )
+        decided = bool(res.get("decided"))
+        if decided and res.get("winner") in ("A", "B"):
+            chosen = str(res.get("winner"))
+    else:
+        # no vote: if we already have a decision stored, query it from ab_decisions table
+        conn = db()
+        try:
+            row = conn.execute(
+                "SELECT winner FROM ab_decisions WHERE ab_group=?",
+                (ab_group,),
+            ).fetchone()
+            if row and row[0] in (0, 1):
+                decided = True
+                chosen = "A" if int(row[0]) == 0 else "B"
+        finally:
+            conn.close()
+
+    # Load variant content; fallback to patterns table if variant missing; final fallback is empty strings.
+    conn = db()
+    try:
+        v = conn.execute(
+            "SELECT system_prompt, prefix FROM pattern_variants WHERE pattern_id=? AND variant=?",
+            (str(inp.pattern_id), chosen),
+        ).fetchone()
+        if v:
+            system_prompt, prefix = v[0] or "", v[1] or ""
+        else:
+            base = conn.execute(
+                "SELECT system_prompt, prefix FROM patterns WHERE pattern_id=?",
+                (str(inp.pattern_id),),
+            ).fetchone()
+            system_prompt, prefix = (base[0] if base and base[0] else ""), (base[1] if base and base[1] else "")
+
+        rendered = ""
+        if system_prompt:
+            rendered += system_prompt.strip() + "\n\n"
+        if prefix:
+            rendered += prefix.strip() + "\n\n"
+        rendered += str(inp.prompt)
+
+        # log to generations for learning
+        try:
+            with conn:
+                conn.execute(
+                    "INSERT INTO generations(ts, feature, prompt, output, meta_json, pattern_id) VALUES(?,?,?,?,?,?)",
+                    (
+                        int(time.time()),
+                        "pattern_render",
+                        f"{inp.pattern_id}:{chosen}",
+                        rendered,
+                        json.dumps({"pattern_id": inp.pattern_id, "variant": chosen, "decided": decided, "ab_group": ab_group}, ensure_ascii=False),
+                        str(inp.pattern_id),
+                    ),
+                )
+        except Exception:
+            pass
+
+        return {
+            "ok": True,
+            "pattern_id": str(inp.pattern_id),
+            "variant": chosen,
+            "decided": decided,
+            "rendered": rendered,
+        }
+    finally:
+        conn.close()
 
 @app.post("/v1/outcome", response_model=OutcomeOut)
 def outcome(inp: OutcomeIn):
