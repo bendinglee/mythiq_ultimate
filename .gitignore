@@ -60,3 +60,7 @@ exports/
 # --- generated learning outputs ---
 reports/*.json
 reports/*.csv
+
+# --- runtime pid files ---
+.uvicorn.pid
+*.pid
