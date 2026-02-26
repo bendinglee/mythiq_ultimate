@@ -113,99 +113,9 @@ def _startup_warmup():
     _warmup_ollama_async()
 
 def db() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
-
-    # generations (logging)
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS generations(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      ts INTEGER NOT NULL,
-      feature TEXT NOT NULL,
-      prompt TEXT NOT NULL,
-      output TEXT NOT NULL,
-      meta_json TEXT,
-      pattern_id TEXT,
-      user_rating REAL,
-      implicit_score REAL,
-      ab_winner INTEGER
-    )
-    """)
-
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS outcomes (
-          ts INTEGER NOT NULL,
-          feature TEXT NOT NULL,
-          key TEXT NOT NULL,
-          reward REAL NOT NULL,
-          meta_json TEXT
-        );
-        """
-    )
-    # stored prompt patterns (system/prefix)
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS patterns(
-      pattern_id TEXT PRIMARY KEY,
-      system_prompt TEXT,
-      prefix TEXT,
-      updated_ts INTEGER NOT NULL
-    )
-    """)
-
-    # pattern variants for A/B tests
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS pattern_variants(
-          pattern_id TEXT NOT NULL,
-          variant TEXT NOT NULL,
-          system_prompt TEXT,
-          prefix TEXT,
-          updated_ts INTEGER NOT NULL,
-          PRIMARY KEY(pattern_id, variant)
-        );
-        """
-    )
-    # pattern library status table (promotion/demotion)
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS library(
-      pattern_id TEXT PRIMARY KEY,
-      status TEXT NOT NULL,
-      last_updated TEXT NOT NULL
-    )
-    """)
-
-    # AB voting (one row per vote; optional voter_id for idempotency)
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS ab_votes(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      ts INTEGER NOT NULL,
-      ab_group TEXT NOT NULL,
-      vote TEXT NOT NULL,            -- 'A' or 'B'
-      user_rating REAL,
-      voter_id TEXT
-    )
-    """)
-
-    conn.execute("""
-    CREATE UNIQUE INDEX IF NOT EXISTS ab_votes_unique_voter
-    ON ab_votes(ab_group, voter_id)
-    WHERE voter_id IS NOT NULL
-    """)
-
-    # AB decisions (frozen winner once decided)
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS ab_decisions(
-      ab_group TEXT PRIMARY KEY,
-      winner TEXT NOT NULL,          -- 'A' or 'B'
-      decided_ts INTEGER NOT NULL,
-      votes_a INTEGER NOT NULL,
-      votes_b INTEGER NOT NULL
-    )
-    """)
-
-    return conn
-
-
+    # Single source of truth: api/app/schema.sql via init_db()
+    init_db()
+    return connect()
 
 def apply_ab_to_library(conn, ab_group: str) -> None:
 
@@ -530,7 +440,7 @@ def build_phaser_game_bundle(title: str, prompt: str) -> dict:
   class MainScene extends Phaser.Scene {
     constructor(){ super("main"); 
 
-CREATE TABLE IF NOT EXISTS outcomes (
+-- DISABLED (moved to schema.sql): CREATE TABLE IF NOT EXISTS outcomes (
   ts INTEGER NOT NULL,
   feature TEXT NOT NULL,
   key TEXT NOT NULL,
@@ -1090,8 +1000,8 @@ def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
         if total >= 5 or (total >= 3 and abs(a - b) >= 3):
             winner = "A" if a >= b else "B"
             conn.execute(
-                "INSERT OR REPLACE INTO ab_decisions(ab_group, winner, decided_ts, votes_a, votes_b) VALUES(?,?,?,?,?)",
-                (inp.ab_group, winner, now, a, b),
+                "INSERT INTO ab_decisions(ab_group, winner, votes_a, votes_b, updated_ts) VALUES(?,?,?,?,?) ON CONFLICT(ab_group) DO UPDATE SET winner=excluded.winner, votes_a=excluded.votes_a, votes_b=excluded.votes_b, updated_ts=excluded.updated_ts",
+                (inp.ab_group, winner, int(a), int(b), now),
             )
             conn.commit()
             
@@ -1120,7 +1030,7 @@ def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
             "ok": True,
             "ab_group": inp.ab_group,
             "winner": winner if decided else None,
-            "picked": inp.winner,
+            "picked": (winner if decided else inp.winner),
             "votes": {"A": a, "B": b},
             "inserted": inserted,
             "decided": decided,            "idempotent": False,
@@ -1218,7 +1128,7 @@ async def run(inp: RunIn) -> RunOut:
 
     conn = db()
     conn.execute(
-        "INSERT INTO generations(ts, feature, prompt, output, meta_json, pattern_id, user_rating, implicit_score, ab_winner) VALUES(?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO generations(ts, feature, key_name, prompt, output, meta_json, pattern_id, user_rating, implicit_score, ab_winner) VALUES(?,?,?,?,?,?,?,?,?,?)",
         (
             int(time.time()),
             inp.feature,
@@ -1700,7 +1610,7 @@ def pattern_render(inp: PatternRenderIn):
         try:
             with conn:
                 conn.execute(
-                    "INSERT INTO generations(ts, feature, prompt, output, meta_json, pattern_id) VALUES(?,?,?,?,?,?)",
+                    "INSERT INTO generations(ts, feature, key_name, prompt, output, meta_json, pattern_id) VALUES(?,?,?,?,?,?)",
                     (
                         int(time.time()),
                         "pattern_render",
