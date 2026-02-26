@@ -6,6 +6,7 @@ python -m py_compile api/app/main.py >/dev/null
 
 curl -fsS "$BASE/readyz" >/dev/null
 curl -fsS "$BASE/openapi.json" >/dev/null
+curl -fsS "$BASE/v1/schema/health" >/dev/null
 
 # quick sanity: ensure ab_pick response has picked in schema
 curl -fsS "$BASE/openapi.json" | python -c '
