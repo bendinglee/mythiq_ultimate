@@ -20,6 +20,7 @@ from typing import Any, Dict, Optional, List
 
 import httpx
 from fastapi import FastAPI, Body, Response
+from .db import init_db
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
