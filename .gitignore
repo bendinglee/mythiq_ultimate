@@ -56,3 +56,7 @@ __pycache__/
 
 # generated outputs
 exports/
+
+# --- generated learning outputs ---
+reports/*.json
+reports/*.csv
