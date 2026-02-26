@@ -7,7 +7,7 @@ LOG="logs/uvicorn.log"
 wait_readyz() {
   # wait up to ~6s for readyz
   for i in $(seq 1 30); do
-    curl -fsS "$BASE/readyz" >/dev/null && return 0
+    curl -fsS "$BASE/readyz" >/dev/null 2>&1 && return 0
     sleep 0.2
   done
   return 1
@@ -32,6 +32,8 @@ case "${1:-}" in
       echo "STARTED pid=$(cat "$PIDFILE") log=$LOG READYZ_OK"
     else
       echo "STARTED pid=$(cat "$PIDFILE") log=$LOG READYZ_FAIL"
+      echo "---- last log lines ----"
+      tail -n 80 "$LOG" || true
       exit 1
     fi
     ;;
