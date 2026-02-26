@@ -19,3 +19,24 @@ props=set((ab.get("properties") or {}).keys())
 assert "picked" in props, f"missing picked in ab_pick schema: {sorted(props)}"
 print("SMOKE_OK")
 '
+
+
+# decided-path contract: after decision, response must be idempotent true + inserted false
+DECIDE="decide_smoke_group"
+for i in 1 2 3; do
+  curl -fsS "$BASE/v1/ab_pick" \
+    -H "content-type: application/json" \
+    -d '{"ab_group":"'"$DECIDE"'","winner":"A","user_rating":5,"voter_id":"sm'"$i"'"}' >/dev/null
+done
+
+curl -fsS "$BASE/v1/ab_pick" \
+  -H "content-type: application/json" \
+  -d '{"ab_group":"'"$DECIDE"'","winner":"B","user_rating":3,"voter_id":"sm4"}' \
+| python3 -c '
+import json,sys
+j=json.load(sys.stdin)
+assert j.get("decided") is True
+assert j.get("idempotent") is True
+assert j.get("inserted") is False
+print("DECIDE_OK")
+'
