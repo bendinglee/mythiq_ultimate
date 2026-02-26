@@ -20,7 +20,8 @@ from typing import Any, Dict, Optional, List
 
 import httpx
 from fastapi import FastAPI, Body, Response
-from .db import init_db
+from .db import init_db, connect
+from .exporters import export_outcomes_csv, export_generations_csv
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -207,6 +208,35 @@ def db() -> sqlite3.Connection:
 
 
 def apply_ab_to_library(conn, ab_group: str) -> None:
+
+
+
+    # Guard: older schemas may not have generations.pattern_id yet
+
+
+
+    try:
+
+
+
+        cols = [r[1] for r in conn.execute("PRAGMA table_info(generations)").fetchall()]
+
+
+
+    except sqlite3.OperationalError:
+
+
+
+        return
+
+
+
+    if "pattern_id" not in cols:
+
+
+
+        return
+
     row = conn.execute("SELECT winner, votes_a, votes_b FROM ab_decisions WHERE ab_group=?", (ab_group,)).fetchone()
     if not row:
         return
@@ -1545,8 +1575,8 @@ def pattern_variant_set(inp: PatternVariantIn):
     try:
         with conn:
             conn.execute(
-                "INSERT OR REPLACE INTO pattern_variants(pattern_id, variant, system_prompt, prefix, updated_ts) VALUES(?,?,?,?,?)",
-                (str(inp.pattern_id), str(inp.variant), inp.system_prompt, inp.prefix, int(time.time())),
+                "INSERT INTO pattern_variants(pattern_id, variant, system_prompt, prefix, created_ts, updated_ts) VALUES(?,?,?,?,?,?) ON CONFLICT(pattern_id, variant) DO UPDATE SET system_prompt=excluded.system_prompt, prefix=excluded.prefix, updated_ts=excluded.updated_ts",
+                (str(inp.pattern_id), str(inp.variant), inp.system_prompt, inp.prefix, int(time.time()), int(time.time())),
             )
         return {"ok": True, "inserted": True}
     finally:
@@ -1700,7 +1730,7 @@ def outcome(inp: OutcomeIn):
     try:
         with conn:
             conn.execute(
-                "INSERT INTO outcomes(ts, feature, key, reward, meta_json) VALUES(?,?,?,?,?)",
+                "INSERT INTO outcomes(ts, feature, key_name, reward, meta_json) VALUES(?,?,?,?,?)",
                 (int(time.time()), str(inp.feature), str(inp.key), float(inp.reward), json.dumps(inp.meta, ensure_ascii=False)),
             )
         return {"ok": True, "inserted": True}
@@ -1708,44 +1738,53 @@ def outcome(inp: OutcomeIn):
         conn.close()
 
 @app.get("/v1/generations/export")
-def generations_export(limit: int = 200):
-    # CSV export for offline analysis/training
-    conn = db()
+def generations_export(limit: int = 100):
+    conn = connect()
     try:
-        rows = conn.execute(
-            "SELECT ts, feature, prompt, output, meta_json FROM generations ORDER BY ts DESC LIMIT ?",
-            (int(limit),),
-        ).fetchall()
+        csv_text = export_generations_csv(conn, limit=limit)
     finally:
         conn.close()
+    from fastapi.responses import Response
+    return Response(content=csv_text, media_type="text/csv; charset=utf-8")
 
-    import csv
-    import io
-    buf = io.StringIO()
-    w = csv.writer(buf)
-    w.writerow(["ts","feature","prompt","output","meta_json"])
-    for r in rows:
-        w.writerow([r[0], r[1], r[2], r[3], r[4]])
-    return Response(content=buf.getvalue(), media_type="text/csv")
 
+
+@app.post("/v1/outcomes/seed")
+def outcomes_seed(feature: str = "ab_pick", key: str = "smoke", reward: float = 1.0, meta_json: str = '{"smoke":true}'):
+    import time
+    conn = connect()
+    try:
+        conn.execute(
+            "INSERT INTO outcomes (ts, feature, key_name, reward, meta_json) VALUES (?,?,?,?,?)",
+            (int(time.time()), feature, key, float(reward), str(meta_json)),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True}
+
+@app.post("/v1/generations/seed")
+def generations_seed(feature: str = "gen", key: str = "smoke", prompt: str = "p", output: str = "o", meta_json: str = '{"smoke":true}'):
+    import time
+    conn = connect()
+    try:
+        conn.execute(
+            "INSERT INTO generations (ts, feature, key_name, prompt, output, meta_json) VALUES (?,?,?,?,?,?)",
+            (int(time.time()), feature, key, str(prompt), str(output), str(meta_json)),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"ok": True}
 
 
 @app.get("/v1/outcomes/export")
-def outcomes_export(limit: int = 200):
-    conn = db()
+def outcomes_export(limit: int = 100):
+    conn = connect()
     try:
-        rows = conn.execute(
-            "SELECT ts, feature, key, reward, meta_json FROM outcomes ORDER BY ts DESC LIMIT ?",
-            (int(limit),),
-        ).fetchall()
+        csv_text = export_outcomes_csv(conn, limit=limit)
     finally:
         conn.close()
-
-    import csv, io
-    buf = io.StringIO()
-    w = csv.writer(buf)
-    w.writerow(["ts","feature","key","reward","meta_json"])
-    for r in rows:
-        w.writerow([r[0], r[1], r[2], r[3], r[4]])
-    return Response(content=buf.getvalue(), media_type="text/csv")
+    from fastapi.responses import Response
+    return Response(content=csv_text, media_type="text/csv; charset=utf-8")
 
