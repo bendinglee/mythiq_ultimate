@@ -1589,9 +1589,9 @@ def pattern_render(inp: PatternRenderIn):
                 "SELECT winner FROM ab_decisions WHERE ab_group=?",
                 (ab_group,),
             ).fetchone()
-            if row and row[0] in (0, 1):
+            if row and row[0] in ("A", "B"):
                 decided = True
-                chosen = "A" if int(row[0]) == 0 else "B"
+                chosen = str(row[0])
         finally:
             conn.close()
 
