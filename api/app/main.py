@@ -67,19 +67,33 @@ app = FastAPI(title="Mythiq Ultimate API", version="0.1.0")
 def _pydantic_rebuild_all_models() -> None:
     """
     Fail fast if any Pydantic models have unresolved ForwardRefs.
-    Only rebuild actual Pydantic BaseModel subclasses to avoid false positives.
+    Rebuild ONLY concrete Pydantic BaseModel subclasses (avoid false positives).
     """
-    try:
-        for obj in list(globals().values()):
-            if isinstance(obj, type):
-                try:
-                    if issubclass(obj, BaseModel):
-                        obj.model_rebuild(force=True)
-                except TypeError:
-                    # obj is not a class suitable for issubclass
-                    continue
-    except Exception as e:
-        raise RuntimeError(f"Pydantic model rebuild failed: {e}") from e
+    bad: list[str] = []
+    for name, obj in list(globals().items()):
+        if not isinstance(obj, type):
+            continue
+        # Must be a pydantic model class (concrete)
+        try:
+            if not issubclass(obj, BaseModel):
+                continue
+        except TypeError:
+            continue
+        # Skip base classes / generics / partials
+        if obj is BaseModel:
+            continue
+        if not hasattr(obj, "__pydantic_fields__"):
+            continue
+        if hasattr(obj, "__pydantic_generic_metadata__"):
+            continue
+
+        try:
+            obj.model_rebuild(force=True)
+        except Exception as e:
+            bad.append(f"{name}: {e}")
+
+    if bad:
+        raise RuntimeError("Pydantic model rebuild failed: " + " | ".join(bad))
 
 @app.on_event("startup")
 def _startup_warmup():
