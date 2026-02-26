@@ -465,7 +465,17 @@ def build_phaser_game_bundle(title: str, prompt: str) -> dict:
   const setScore = (v) => { score = v; document.getElementById("score").textContent = "score: " + score; };
 
   class MainScene extends Phaser.Scene {
-    constructor(){ super("main"); }
+    constructor(){ super("main"); 
+
+CREATE TABLE IF NOT EXISTS outcomes (
+  ts INTEGER NOT NULL,
+  feature TEXT NOT NULL,
+  key TEXT NOT NULL,
+  reward REAL NOT NULL,
+  meta_json TEXT
+);
+
+}
     preload(){}
 
     create(){
@@ -882,6 +892,19 @@ class AbPickIn(BaseModel):
 
 
 
+
+
+
+
+class OutcomeIn(BaseModel):
+    feature: str
+    key: str
+    reward: float
+    meta: dict = {}
+
+class OutcomeOut(BaseModel):
+    ok: bool
+    inserted: bool
 
 class AbPickOut(BaseModel):
     ok: bool
@@ -1444,6 +1467,22 @@ def _log_game_build(game_id: str, title: str, prompt: str, started: float, statu
         pass
 
 
+
+
+
+@app.post("/v1/outcome", response_model=OutcomeOut)
+def outcome(inp: OutcomeIn):
+    # Record a scalar reward signal for learning loops.
+    conn = db()
+    try:
+        with conn:
+            conn.execute(
+                "INSERT INTO outcomes(ts, feature, key, reward, meta_json) VALUES(?,?,?,?,?)",
+                (int(time.time()), str(inp.feature), str(inp.key), float(inp.reward), json.dumps(inp.meta, ensure_ascii=False)),
+            )
+        return {"ok": True, "inserted": True}
+    finally:
+        conn.close()
 
 @app.get("/v1/generations/export")
 def generations_export(limit: int = 200):
