@@ -121,6 +121,17 @@ def db() -> sqlite3.Connection:
     )
     """)
 
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS outcomes (
+          ts INTEGER NOT NULL,
+          feature TEXT NOT NULL,
+          key TEXT NOT NULL,
+          reward REAL NOT NULL,
+          meta_json TEXT
+        );
+        """
+    )
     # stored prompt patterns (system/prefix)
     conn.execute("""
     CREATE TABLE IF NOT EXISTS patterns(
