@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PY="$ROOT/.venv/bin/python"
 BASE="${BASE:-http://127.0.0.1:7777}"
 PIDFILE=".uvicorn.pid"
 LOG="logs/uvicorn.log"
@@ -25,7 +27,7 @@ case "${1:-}" in
   start)
     stop
     nohup env PYTHONUNBUFFERED=1 UVICORN_LOOP=asyncio \
-      python3 -m uvicorn api.app.main:app --host 127.0.0.1 --port 7777 --workers 1 --no-access-log \
+"$PY" -m uvicorn api.app.main:app --host 127.0.0.1 --port 7777 --workers 1 --no-access-log \
       >>"$LOG" 2>&1 &
     echo $! > "$PIDFILE"
     if wait_readyz; then
