@@ -100,6 +100,14 @@ def _startup_warmup():
     # Enable with: MYTHIQ_WARMUP=1
     if os.environ.get("MYTHIQ_WARMUP") != "1":
         return
+
+    # Ensure DB schema is created at boot (migrations)
+    try:
+        c = db()
+        c.close()
+    except Exception:
+        # DB boot should not take the whole server down; endpoints will surface errors if any
+        pass
     _warmup_ollama_async()
 
 def db() -> sqlite3.Connection:
