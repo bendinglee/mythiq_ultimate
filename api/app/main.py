@@ -1505,3 +1505,24 @@ def generations_export(limit: int = 200):
         w.writerow([r[0], r[1], r[2], r[3], r[4]])
     return Response(content=buf.getvalue(), media_type="text/csv")
 
+
+
+@app.get("/v1/outcomes/export")
+def outcomes_export(limit: int = 200):
+    conn = db()
+    try:
+        rows = conn.execute(
+            "SELECT ts, feature, key, reward, meta_json FROM outcomes ORDER BY ts DESC LIMIT ?",
+            (int(limit),),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    import csv, io
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["ts","feature","key","reward","meta_json"])
+    for r in rows:
+        w.writerow([r[0], r[1], r[2], r[3], r[4]])
+    return Response(content=buf.getvalue(), media_type="text/csv")
+
