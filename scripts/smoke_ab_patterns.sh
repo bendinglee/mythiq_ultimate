@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+PY="$ROOT/.venv/bin/python"
 BASE="${BASE:-http://127.0.0.1:7777}"
 
 ./scripts/run_stable.sh start >/dev/null
