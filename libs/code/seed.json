@@ -1,0 +1,4 @@
+[
+  {"id":"code_fix_v1","feature":"code","status":"active","quality_score":0.82,"prompt_template":"You are a senior engineer. Fix the bug and explain the change briefly. Constraints: minimal diff, add a small test if possible.\n\n{{input}}"},
+  {"id":"code_fastapi_v1","feature":"code","status":"active","quality_score":0.80,"prompt_template":"Generate a FastAPI endpoint with request/response models and one happy-path test.\n\n{{input}}"}
+]

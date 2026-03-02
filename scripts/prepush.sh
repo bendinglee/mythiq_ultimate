@@ -21,3 +21,9 @@ fi
 if test -x "$ROOT/scripts/smoke_ab_patterns.sh"; then
   "$ROOT/scripts/smoke_ab_patterns.sh" >/dev/null
 fi
+test -x "$ROOT/scripts/index_libs_qdrant.sh"
+"$ROOT/scripts/index_libs_qdrant.sh"
+test -x "$ROOT/scripts/smoke_router.sh"
+"$ROOT/scripts/smoke_router.sh"
+test -x "$ROOT/scripts/smoke_library_budget.sh"
+"$ROOT/scripts/smoke_library_budget.sh"

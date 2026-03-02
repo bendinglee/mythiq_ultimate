@@ -5,7 +5,8 @@ RUN apt-get update \
 
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-RUN pip install --no-cache-dir fastapi uvicorn httpx pydantic==2.* sqlite-utils redis qdrant-client
+RUN pip install --no-cache-dir fastapi uvicorn httpx pydantic==2.* sqlite-utils redis qdrant-client requests
+
 COPY app /app/app
 RUN mkdir -p /app/state /app/logs
 EXPOSE 7777

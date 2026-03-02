@@ -59,6 +59,7 @@ services:
   ui:
     build: ./ui
 
+      - MYTHIQ_EMBED_MODEL=nomic-embed-text
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSI http://127.0.0.1:3000/ | head -n 1 | grep -q '200'"]
       interval: 5s

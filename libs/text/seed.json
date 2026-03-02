@@ -1,0 +1,4 @@
+[
+  {"id":"text_summarize_v1","feature":"text","status":"active","quality_score":0.80,"prompt_template":"Summarize the following content into bullet points with a 1-sentence takeaway:\n\n{{input}}"},
+  {"id":"text_rewrite_v1","feature":"text","status":"active","quality_score":0.78,"prompt_template":"Rewrite this to be clearer and more concise without losing meaning:\n\n{{input}}"}
+]
