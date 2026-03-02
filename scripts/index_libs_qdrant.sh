@@ -90,6 +90,8 @@ for fp in paths:
                 "status": row.get("status","active"),
                 "quality_score": float(row.get("quality_score",0.5)),
                 "prompt_template": tmpl,
+                "text": tmpl,
+
                 "source_file": str(Path(fp)),
             }
         })

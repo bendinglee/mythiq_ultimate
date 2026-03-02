@@ -2,7 +2,7 @@ from __future__ import annotations
 import shutil
 import time
 from datetime import datetime, timezone
-from api.app import db as mythiq_db
+from app import db as mythiq_db
 
 import zipfile
 
@@ -21,6 +21,7 @@ from typing import Any, Dict, Optional, List
 import httpx
 from fastapi import FastAPI, Body, Response
 from .db import init_db, connect
+from .router_embed import route as embed_route
 from .exporters import export_outcomes_csv, export_generations_csv
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
@@ -1697,4 +1698,89 @@ def outcomes_export(limit: int = 100):
         conn.close()
     from fastapi.responses import Response
     return Response(content=csv_text, media_type="text/csv; charset=utf-8")
+
+
+# --- pydantic forward-ref rebuild (openapi safety) ---
+def _rebuild_models_for_openapi() -> None:
+    # Pydantic v2 can require explicit rebuild() for forward refs in Annotated params.
+    for name in ("AbPickIn", "AbPickOut", "AbVoteIn", "AbVoteOut"):
+        obj = globals().get(name)
+        if obj is None:
+            continue
+        fn = getattr(obj, "model_rebuild", None)
+        if callable(fn):
+            try:
+                fn()
+            except Exception:
+                # Do not crash import; OpenAPI will surface issues if any remain.
+                pass
+
+_rebuild_models_for_openapi()
+
+
+# =========================
+# RAG: qdrant + ollama
+# =========================
+from typing import Any, Dict, List, Optional
+import os, json, requests
+from pydantic import BaseModel
+
+class RagQueryIn(BaseModel):
+    query: str
+    top_k: int = 3
+
+class RagHit(BaseModel):
+    score: float
+    feature: Optional[str] = None
+    lib_id: Optional[str] = None
+    text: Optional[str] = None
+
+class RagQueryOut(BaseModel):
+    query: str
+    top_k: int
+    hits: List[RagHit]
+
+def _env(name: str, default: str) -> str:
+    v = os.environ.get(name)
+    return v.strip() if isinstance(v, str) and v.strip() else default
+
+def _ollama_embed(prompt: str) -> List[float]:
+    ollama = _env("OLLAMA_URL", "http://ollama:11434")
+    model = _env("MYTHIQ_EMBED_MODEL", "nomic-embed-text")
+    r = requests.post(f"{ollama}/api/embeddings", json={"model": model, "prompt": prompt}, timeout=60)
+    r.raise_for_status()
+    j = r.json()
+    v = j.get("embedding")
+    if not isinstance(v, list) or not v:
+        raise RuntimeError("empty embedding")
+    return v
+
+def _qdrant_search(vec: List[float], top_k: int) -> List[Dict[str, Any]]:
+    qdrant = _env("QDRANT_URL", "http://qdrant:6333")
+    coll = _env("QDRANT_COLL", "mythiq_libs")
+    body = {"vector": vec, "limit": int(top_k), "with_payload": True}
+    r = requests.post(f"{qdrant}/collections/{coll}/points/search", json=body, timeout=60)
+    if r.status_code == 400 and ("named vectors" in r.text.lower() or "vector name" in r.text.lower()):
+        body["vector"] = {"name": "default", "vector": vec}
+        r = requests.post(f"{qdrant}/collections/{coll}/points/search", json=body, timeout=60)
+    r.raise_for_status()
+    j = r.json()
+    return j.get("result", []) or []
+
+@app.post("/v1/rag/query", response_model=RagQueryOut)
+def rag_query(inp: RagQueryIn):
+    vec = _ollama_embed(inp.query)
+    hits = _qdrant_search(vec, inp.top_k)
+
+    out_hits: List[RagHit] = []
+    for h in hits:
+        p = h.get("payload") or {}
+        out_hits.append(RagHit(
+            score=float(h.get("score") or 0.0),
+            feature=p.get("feature"),
+            lib_id=p.get("lib_id"),
+            text=(p.get("text") or p.get("content") or p.get("body") or p.get("prompt_template")),
+        ))
+    return RagQueryOut(query=inp.query, top_k=inp.top_k, hits=out_hits)
+
 
