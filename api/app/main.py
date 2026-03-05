@@ -11,6 +11,8 @@ import threading
 import os
 import sqlite3
 from pathlib import Path
+from api.app.utils.game_tools import enforce_canonical_game_tools
+
 import time
 START_TS = time.time()
 
@@ -1376,13 +1378,23 @@ def game_build(inp: dict):
     title = str(inp.get("title") or "Mythiq Game")
     b = build_phaser_game_bundle(title=title, prompt=prompt)
 
+    # enforce canonical tools into generated repo (best effort)
+    try:
+        repo_path = (b.get("path") or b.get("dir") or "").strip()
+        if repo_path:
+            enforce_canonical_game_tools(repo_path, Path(__file__).resolve().parents[2])
+    except Exception as e:
+        try:
+            _append_metric({"ts": int(time.time()), "route": "game_tools_enforce", "error": str(e)})
+        except Exception:
+            pass
     # --- log this build into generations (for metrics/learning loop) ---
     try:
-        _gid = str(locals().get("game_id", "unknown"))
+        _gid = str(b.get("game_id") or b.get("id") or "unknown")
         _title = str(inp.get("title", ""))
         _prompt = str(inp.get("prompt", ""))
-        _dir = str(locals().get("out_dir", locals().get("dir", "")))
-        _zip = str(locals().get("zip_path", locals().get("zip", "")))
+        _dir = str(b.get("path") or b.get("dir") or "")
+        _zip = str(b.get("zip") or b.get("zip_path") or "")
 
         conn = db()
         with conn:
@@ -1398,13 +1410,10 @@ def game_build(inp: dict):
             )
         conn.close()
     except Exception as e:
-        # keep a minimal breadcrumb in metrics.jsonl so failures are visible
         try:
             _append_metric({"ts": int(time.time()), "route": "game_build_log", "error": str(e)})
         except Exception:
             pass
-
-
     return {"ok": True, **b}
 
 
