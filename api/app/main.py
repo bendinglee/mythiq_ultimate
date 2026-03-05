@@ -2,8 +2,7 @@ from __future__ import annotations
 import shutil
 import time
 from datetime import datetime, timezone
-from app import db as mythiq_db
-
+from . import db as mythiq_db
 import zipfile
 
 import threading
@@ -399,6 +398,19 @@ def _safe_slug(x: str) -> str:
     x = re.sub(r'[^a-z0-9]+', '-', x).strip('-')
     return x[:50] or "game"
 
+
+def _assert_tools_in_bundle(outdir: Path) -> None:
+    # Hard gate: exports must include canonical tools in dir
+    tools_dir = outdir / "tools"
+    need = {"ai_auto_pick.mjs", "ai_save_variants.mjs", "ai_gen_variants.mjs"}
+    if not tools_dir.exists():
+        raise RuntimeError(f"export missing tools/ directory: {tools_dir}")
+    have = {p.name for p in tools_dir.glob("*.mjs")}
+    missing = sorted(need - have)
+    if missing:
+        raise RuntimeError(f"export tools/ missing files: {missing}")
+
+
 def build_phaser_game_bundle(title: str, prompt: str) -> dict:
     """
     Generates a minimal Phaser game bundle:
@@ -411,6 +423,15 @@ def build_phaser_game_bundle(title: str, prompt: str) -> dict:
     slug = _safe_slug(title or "mythiq-game")
     outdir = EXPORTS_DIR / f"{gid}_{slug}"
     outdir.mkdir(parents=True, exist_ok=True)
+
+    # include canonical tools inside the export bundle
+    tools_dir = outdir / "tools"
+    tools_dir.mkdir(parents=True, exist_ok=True)
+    canon = Path(__file__).resolve().parents[2] / "tools" / "canonical_game_tools"
+    for name in ("ai_auto_pick.mjs", "ai_save_variants.mjs", "ai_gen_variants.mjs"):
+        src = canon / name
+        if src.exists():
+            (tools_dir / name).write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
 
     (outdir / "style.css").write_text("""html,body{margin:0;padding:0;background:#0b0f14;color:#e6edf3;font-family:system-ui}
 #game{width:100vw;height:100vh} .hud{position:fixed;left:12px;top:12px;font-size:14px;opacity:.9}
@@ -435,7 +456,7 @@ def build_phaser_game_bundle(title: str, prompt: str) -> dict:
 
     # Simple endless “dodge + collect” loop. Upgrade later via LLM-to-spec.
     (outdir / "game.js").write_text(r"""(() => {
-  const W = 800, H = 600;
+    _assert_tools_in_bundle(outdir)\n  const W = 800, H = 600;
 
   let score = 0;
   const setScore = (v) => { score = v; document.getElementById("score").textContent = "score: " + score; };
