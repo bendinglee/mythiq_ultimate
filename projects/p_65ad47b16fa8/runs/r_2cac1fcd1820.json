@@ -1,0 +1,68 @@
+{
+  "run_id": "r_2cac1fcd1820",
+  "project_id": "p_65ad47b16fa8",
+  "route": {
+    "feature": "animation",
+    "confidence": 0.5,
+    "reasons": [
+      "user_want:animation",
+      "keyword_hits:text:1",
+      "keyword_hits:image:1",
+      "keyword_hits:docs:1",
+      "keyword_hits:animation:2"
+    ],
+    "scores": {
+      "text": 0.4,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.4,
+      "shorts": 0.2,
+      "docs": 0.4,
+      "animation": 1.8
+    }
+  },
+  "plan": {
+    "feature": "animation",
+    "steps": [
+      {
+        "id": "a1",
+        "action": "extract_scene_goal",
+        "meta": {}
+      },
+      {
+        "id": "a2",
+        "action": "define_shot_sequence",
+        "meta": {}
+      },
+      {
+        "id": "a3",
+        "action": "generate_animation_plan",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "animation",
+    "type": "markdown",
+    "content": "# Animation Shot Plan\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: animation\nPrior stage summaries:\n- docs: # Document Blueprint  ## Goal create a multi-stage project pipeline  ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs  ## Recommende\n- image: # Image Generation Package  ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior stage summaries: - docs: # Document Bluepri\n\n## Shot Flow\n1. Establishing shot\n2. Subject introduction\n3. Motion escalation\n4. Close-up emphasis\n5. Payoff frame\n\n## Production Notes\n- visual continuity first\n- shot-to-shot clarity\n- simple camera motion before complexity\n- keep asset reuse high\n\n## Deliverables\n- shot list\n- scene beat notes\n- animation prompt package\n\n## Pattern\ndefault_animation_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_animation_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}

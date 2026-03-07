@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 from api.app.core.models import ExecuteIn, FeatureResult, PlanOut
-from api.app.features import code_feature, game_feature, text_feature, image_feature, shorts_feature
+from api.app.features import (
+    animation_feature,
+    code_feature,
+    docs_feature,
+    game_feature,
+    image_feature,
+    shorts_feature,
+    text_feature,
+)
 
 
 def make_plan(inp: ExecuteIn, feature: str) -> PlanOut:
@@ -13,6 +21,10 @@ def make_plan(inp: ExecuteIn, feature: str) -> PlanOut:
         return image_feature.plan(inp.model_dump())
     if feature == "shorts":
         return shorts_feature.plan(inp.model_dump())
+    if feature == "docs":
+        return docs_feature.plan(inp.model_dump())
+    if feature == "animation":
+        return animation_feature.plan(inp.model_dump())
     return text_feature.plan(inp.model_dump())
 
 
@@ -25,6 +37,10 @@ def execute_feature(inp: ExecuteIn, feature: str, reused_pattern: str | None = N
         return image_feature.run(inp.model_dump(), reused_pattern)
     if feature == "shorts":
         return shorts_feature.run(inp.model_dump(), reused_pattern)
+    if feature == "docs":
+        return docs_feature.run(inp.model_dump(), reused_pattern)
+    if feature == "animation":
+        return animation_feature.run(inp.model_dump(), reused_pattern)
     return text_feature.run(inp.model_dump(), reused_pattern)
 
 

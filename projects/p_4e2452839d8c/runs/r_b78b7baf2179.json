@@ -1,0 +1,65 @@
+{
+  "run_id": "r_b78b7baf2179",
+  "project_id": "p_4e2452839d8c",
+  "route": {
+    "feature": "docs",
+    "confidence": 0.4516,
+    "reasons": [
+      "user_want:docs",
+      "keyword_hits:animation:1"
+    ],
+    "scores": {
+      "text": 0.3,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.3,
+      "shorts": 0.3,
+      "docs": 1.4,
+      "animation": 0.4
+    }
+  },
+  "plan": {
+    "feature": "text",
+    "steps": [
+      {
+        "id": "t1",
+        "action": "understand_prompt",
+        "meta": {}
+      },
+      {
+        "id": "t2",
+        "action": "draft_structured_response",
+        "meta": {}
+      },
+      {
+        "id": "t3",
+        "action": "format_output",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "text",
+    "type": "markdown",
+    "content": "# Mythiq Text Output\n\nGoal: create a multi-stage project pipeline\n\nPrompt:\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\nResult:\n- clear answer structure\n- action-oriented response\n- reusable output scaffold\n- pattern: default_text_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_text_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}

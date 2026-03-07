@@ -1,0 +1,66 @@
+{
+  "run_id": "r_9b19a36a7271",
+  "project_id": "p_501a08e8ac32",
+  "route": {
+    "feature": "docs",
+    "confidence": 0.4375,
+    "reasons": [
+      "user_want:docs",
+      "keyword_hits:text:1",
+      "keyword_hits:shorts:2"
+    ],
+    "scores": {
+      "text": 0.4,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.2,
+      "shorts": 0.6,
+      "docs": 1.4,
+      "animation": 0.2
+    }
+  },
+  "plan": {
+    "feature": "text",
+    "steps": [
+      {
+        "id": "t1",
+        "action": "understand_prompt",
+        "meta": {}
+      },
+      {
+        "id": "t2",
+        "action": "draft_structured_response",
+        "meta": {}
+      },
+      {
+        "id": "t3",
+        "action": "format_output",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "text",
+    "type": "markdown",
+    "content": "# Mythiq Text Output\n\nGoal: produce a chain of outputs for a short-form content project\n\nPrompt:\nBase goal: produce a chain of outputs for a short-form content project\nOriginal prompt: Build a viral history short about an ancient empire\nCurrent stage: docs\n\nResult:\n- clear answer structure\n- action-oriented response\n- reusable output scaffold\n- pattern: default_text_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_text_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}

@@ -1,0 +1,67 @@
+{
+  "run_id": "r_f906e30a1556",
+  "project_id": "p_ab8df20697f7",
+  "route": {
+    "feature": "shorts",
+    "confidence": 0.5263,
+    "reasons": [
+      "user_want:shorts",
+      "keyword_hits:text:2",
+      "keyword_hits:shorts:3",
+      "keyword_hits:docs:1"
+    ],
+    "scores": {
+      "text": 0.6,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.2,
+      "shorts": 2.0,
+      "docs": 0.4,
+      "animation": 0.2
+    }
+  },
+  "plan": {
+    "feature": "shorts",
+    "steps": [
+      {
+        "id": "s1",
+        "action": "find_hook",
+        "meta": {}
+      },
+      {
+        "id": "s2",
+        "action": "define_beat_structure",
+        "meta": {}
+      },
+      {
+        "id": "s3",
+        "action": "generate_edit_script",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "shorts",
+    "type": "markdown",
+    "content": "# Shorts Blueprint\n\n## Topic\nBase goal: produce a chain of outputs for a short-form content project\nOriginal prompt: Build a viral history short about an ancient empire\nCurrent stage: shorts\nPrior stage summaries:\n- docs: # Document Blueprint  ## Goal produce a chain of outputs for a short-form content project  ## Prompt Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short abo\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_shorts_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}

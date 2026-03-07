@@ -1,0 +1,66 @@
+{
+  "run_id": "r_7da6d3952271",
+  "project_id": "p_4e2452839d8c",
+  "route": {
+    "feature": "animation",
+    "confidence": 0.5625,
+    "reasons": [
+      "user_want:animation",
+      "keyword_hits:image:1",
+      "keyword_hits:animation:2"
+    ],
+    "scores": {
+      "text": 0.2,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.4,
+      "shorts": 0.2,
+      "docs": 0.2,
+      "animation": 1.8
+    }
+  },
+  "plan": {
+    "feature": "text",
+    "steps": [
+      {
+        "id": "t1",
+        "action": "understand_prompt",
+        "meta": {}
+      },
+      {
+        "id": "t2",
+        "action": "draft_structured_response",
+        "meta": {}
+      },
+      {
+        "id": "t3",
+        "action": "format_output",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "text",
+    "type": "markdown",
+    "content": "# Mythiq Text Output\n\nGoal: create a multi-stage project pipeline\n\nPrompt:\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: animation\nPrior stage summaries:\n- docs: # Mythiq Text Output  Goal: create a multi-stage project pipeline  Prompt: Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs  Result: - clear a\n- image: # Image Generation Package  ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior stage summaries: - docs: # Mythiq Text Outp\n\nResult:\n- clear answer structure\n- action-oriented response\n- reusable output scaffold\n- pattern: default_text_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_text_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}

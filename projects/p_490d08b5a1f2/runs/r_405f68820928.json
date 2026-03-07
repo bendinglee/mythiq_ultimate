@@ -1,0 +1,64 @@
+{
+  "run_id": "r_405f68820928",
+  "project_id": "p_490d08b5a1f2",
+  "route": {
+    "feature": "image",
+    "confidence": 0.6042,
+    "reasons": [
+      "user_want:image",
+      "keyword_hits:image:3",
+      "reused_pattern:default_image_v1"
+    ],
+    "scores": {
+      "text": 0.2,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 1.45,
+      "shorts": 0.35
+    }
+  },
+  "plan": {
+    "feature": "image",
+    "steps": [
+      {
+        "id": "i1",
+        "action": "extract_visual_subject",
+        "meta": {}
+      },
+      {
+        "id": "i2",
+        "action": "define_style_and_composition",
+        "meta": {}
+      },
+      {
+        "id": "i3",
+        "action": "produce_image_prompt_package",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "image",
+    "type": "markdown",
+    "content": "# Image Generation Package\n\n## User Prompt\n# Image Generation Package\n\n## User Prompt\nBuild a cinematic mythic trailer concept\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic stylized\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Build a cinematic mythic trailer concept\nStyle: cinematic stylized\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic stylized\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: # Image Generation Package\n\n## User Prompt\nBuild a cinematic mythic trailer concept\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic stylized\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Build a cinematic mythic trailer concept\nStyle: cinematic stylized\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\nStyle: cinematic stylized\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_image_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": "default_image_v1"
+}

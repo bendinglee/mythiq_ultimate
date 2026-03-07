@@ -1,0 +1,66 @@
+{
+  "run_id": "r_8174c04ab873",
+  "project_id": "p_4e2452839d8c",
+  "route": {
+    "feature": "image",
+    "confidence": 0.5333,
+    "reasons": [
+      "user_want:image",
+      "keyword_hits:image:1",
+      "keyword_hits:animation:1"
+    ],
+    "scores": {
+      "text": 0.2,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 1.6,
+      "shorts": 0.2,
+      "docs": 0.2,
+      "animation": 0.4
+    }
+  },
+  "plan": {
+    "feature": "image",
+    "steps": [
+      {
+        "id": "i1",
+        "action": "extract_visual_subject",
+        "meta": {}
+      },
+      {
+        "id": "i2",
+        "action": "define_style_and_composition",
+        "meta": {}
+      },
+      {
+        "id": "i3",
+        "action": "produce_image_prompt_package",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "image",
+    "type": "markdown",
+    "content": "# Image Generation Package\n\n## User Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: image\nPrior stage summaries:\n- docs: # Mythiq Text Output  Goal: create a multi-stage project pipeline  Prompt: Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs  Result: - clear a\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic stylized\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Base goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: image\nPrior stage summaries:\n- docs: # Mythiq Text Output  Goal: create a multi-stage project pipeline  Prompt: Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs  Result: - clear a\nStyle: cinematic stylized\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_image_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}
