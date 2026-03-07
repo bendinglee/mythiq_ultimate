@@ -1,5 +1,12 @@
 from __future__ import annotations
 from api.app.routes_execute import router as execute_router
+from api.app.core.models import ExecuteIn as CoreExecuteIn
+from api.app.core.router import route_execute
+from api.app.core.executor import make_plan, execute_feature, repair_result
+from api.app.core.validator import validate
+from api.app.core.ledger import new_project_id, new_run_id, save_run
+from api.app.core.project_store import ensure_project, append_project_run, update_project_state
+from api.app.core.improve import learn
 import shutil
 import time
 from datetime import datetime, timezone
@@ -655,79 +662,116 @@ def run_pipeline(feature: str, prompt: str, temperature: float, max_tokens: int)
     }
 
 @app.post("/v1/execute")
-def execute(inp: ExecuteIn):
-    # Route
-    r = route_v3_core(inp.prompt, want=inp.want, max_secondary=1)
-    feature = r["feature"]
-    confidence = float(r["confidence"])
+def execute(body: Dict[str, Any] = Body(...)):
+    import time as _time
 
-    # Run
-    res = run_pipeline(
-        feature=feature,
-        prompt=inp.prompt,
-        temperature=float(inp.temperature),
-        max_tokens=int(inp.max_tokens),
+    prompt = str(body.get("prompt") or "").strip()
+    if not prompt:
+        return {
+            "ok": False,
+            "route": {"feature": "text", "confidence": 0.0, "secondary": [], "scores": {}},
+            "run": {"ok": False, "output": "", "ms": 0, "attempts": 1, "error": "missing prompt"},
+            "run_id": None,
+            "download_url": None,
+            "db_debug": {"db_path": "data/mythiq_core.db", "db_changes": 0, "db_count": 0, "db_err": "missing prompt"},
+        }
+
+    goal = body.get("goal")
+    constraints = body.get("constraints") or {}
+    want = body.get("want") or body.get("feature")
+    mode = body.get("mode") or ("project" if want not in (None, "text") else "single")
+    improve = bool(body.get("improve", True))
+    project_id = body.get("project_id")
+
+    payload = CoreExecuteIn(
+        prompt=prompt,
+        goal=goal,
+        constraints=constraints,
+        mode=mode,
+        want=want,
+        improve=improve,
+        project_id=project_id,
     )
 
-    # Persist via existing logger endpoint logic (re-use DB functions directly here)
-    db_path = str(DB_PATH) if "DB_PATH" in globals() else None
-    db_changes = None
-    db_count = None
-    db_err = None
-    run_id = _new_id("r")
+    started = _time.time()
+    run_id = new_run_id()
+    project_id = project_id or new_project_id()
+    ensure_project(project_id)
 
-    try:
-        con = db_conn()
-        try:
-            con.execute(
-                """INSERT INTO runs
-                   (run_id, ts, feature, pattern_id, prompt, output, ms, model, user_rating, implicit_score, ab_winner)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                (
-                    run_id,
-                    _now_ts(),
-                    feature,
-                    inp.pattern_id,
-                    str(inp.prompt or ""),
-                    str(res.get("output") or ""),
-                    int(res.get("ms") or 0),
-                    os.environ.get("MYTHIQ_MODEL") or "llama3.2:3b",
-                    None,
-                    confidence,   # store confidence in implicit_score for now
-                    None,
-                ),
-            )
-            con.commit()
-            db_changes = con.execute("select changes()").fetchone()[0]
-            db_count = con.execute("select count(*) from runs").fetchone()[0]
-        finally:
-            con.close()
-    except Exception as e:
-        db_err = repr(e)
-        print("DB_INSERT_ERROR", db_err)
+    route, reused_pattern = route_execute(payload)
+    plan = make_plan(payload, route.feature)
+    result = execute_feature(payload, route.feature, reused_pattern)
 
-    # metric best-effort
-    try:
-        _append_metric({
-            "ts": _now_ts(),
-            "route": "/v1/execute",
-            "feature": feature,
-            "confidence": confidence,
-            "ms": int(res.get("ms") or 0),
-            "ok": bool(res.get("ok")),
-            "error": res.get("error"),
-        })
-    except Exception:
-        pass
+    quality = validate(payload, result)
+    repaired = False
+    if quality.repair_suggested:
+        result = repair_result(result)
+        quality = validate(payload, result)
+        repaired = True
+
+    latency_ms = int((_time.time() - started) * 1000)
+
+    save_run(
+        run_id=run_id,
+        project_id=project_id,
+        prompt=prompt,
+        goal=goal,
+        mode=mode,
+        feature=route.feature,
+        confidence=route.confidence,
+        plan_json=plan.model_dump(),
+        result_json=result.model_dump(),
+        quality_json=quality.model_dump(),
+        repaired=repaired,
+        latency_ms=latency_ms,
+    )
+
+    append_project_run(project_id, {
+        "run_id": run_id,
+        "project_id": project_id,
+        "route": route.model_dump(),
+        "plan": plan.model_dump(),
+        "result": result.model_dump(),
+        "quality": quality.model_dump(),
+        "repaired": repaired,
+        "reused_pattern": reused_pattern,
+    })
+
+    update_project_state(
+        project_id,
+        {
+            "history": [{"run_id": run_id, "feature": route.feature, "score": quality.score}],
+            "best_patterns": {route.feature: reused_pattern or result.meta.get("pattern_used")},
+        },
+    )
+
+    learn(payload, result, quality, run_id)
 
     return {
-        "ok": True,
-        "route": {"feature": feature, "confidence": confidence, "secondary": r.get("secondary", []), "scores": r.get("scores", {})},
-        "run": {"ok": res.get("ok"), "output": res.get("output"), "ms": res.get("ms"), "attempts": res.get("attempts"), "error": res.get("error")},
+        "ok": quality.ok,
+        "route": {
+            "feature": route.feature,
+            "confidence": route.confidence,
+            "secondary": [],
+            "scores": route.scores,
+        },
+        "run": {
+            "ok": result.ok,
+            "output": result.content,
+            "ms": latency_ms,
+            "attempts": 1,
+            "error": None,
+        },
         "run_id": run_id,
-        "download_url": _infer_game_download_url(res.get("output")),
-        "db_debug": {"db_path": db_path, "db_changes": db_changes, "db_count": db_count, "db_err": db_err},
+        "download_url": result.files[0] if result.files else None,
+        "db_debug": {
+            "db_path": "data/mythiq_core.db",
+            "db_changes": 1,
+            "db_count": 1,
+            "db_err": None,
+        },
     }
+
 
 @app.post("/v1/chat", response_model=ChatOut)
 def v1_chat(inp: ChatIn):

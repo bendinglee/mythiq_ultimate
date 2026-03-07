@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "project_id": "p_eea0c2c2f2fb",
+  "run_id": "r_8b82e32874f3",
+  "route": {
+    "feature": "game",
+    "confidence": 0.6923,
+    "reasons": [
+      "user_want:game",
+      "keyword_hits:game:1"
+    ],
+    "scores": {
+      "text": 0.2,
+      "code": 0.2,
+      "game": 0.9
+    }
+  },
+  "plan": {
+    "feature": "game",
+    "steps": [
+      {
+        "id": "g1",
+        "action": "extract_core_loop",
+        "meta": {}
+      },
+      {
+        "id": "g2",
+        "action": "define_mechanics",
+        "meta": {}
+      },
+      {
+        "id": "g3",
+        "action": "define_progression_and_assets",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "game",
+    "type": "markdown",
+    "content": "# Game Design Skeleton\n\n## Prompt\nCreate a simple arcade game concept\n\n## Core Loop\n- player action\n- system response\n- reward/progression\n- repeat with increasing mastery\n\n## Systems\n- movement\n- objective\n- fail state\n- scoring\n- upgrade path\n\n## Build Notes\n- exportable web build\n- lightweight assets first\n- pattern: default_game_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_game_v1"
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "metrics": {
+    "latency_ms": 1
+  },
+  "repaired": false,
+  "reused_pattern": null
+}
