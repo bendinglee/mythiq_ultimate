@@ -1,4 +1,5 @@
 from __future__ import annotations
+from api.app.routes_execute import router as execute_router
 import shutil
 import time
 from datetime import datetime, timezone
@@ -1789,13 +1790,17 @@ def _qdrant_search(vec: List[float], top_k: int) -> List[Dict[str, Any]]:
     qdrant = _env("QDRANT_URL", "http://qdrant:6333")
     coll = _env("QDRANT_COLL", "mythiq_libs")
     body = {"vector": vec, "limit": int(top_k), "with_payload": True}
-    r = requests.post(f"{qdrant}/collections/{coll}/points/search", json=body, timeout=60)
-    if r.status_code == 400 and ("named vectors" in r.text.lower() or "vector name" in r.text.lower()):
-        body["vector"] = {"name": "default", "vector": vec}
+    try:
         r = requests.post(f"{qdrant}/collections/{coll}/points/search", json=body, timeout=60)
-    r.raise_for_status()
-    j = r.json()
-    return j.get("result", []) or []
+        if r.status_code == 400 and ("named vectors" in r.text.lower() or "vector name" in r.text.lower()):
+            body["vector"] = {"name": "default", "vector": vec}
+            r = requests.post(f"{qdrant}/collections/{coll}/points/search", json=body, timeout=60)
+        r.raise_for_status()
+        j = r.json()
+        return j.get("result", []) or []
+    except requests.exceptions.RequestException:
+        # Local/dev mode: Qdrant may be absent; degrade gracefully.
+        return []
 
 @app.post("/v1/rag/query", response_model=RagQueryOut)
 def rag_query(inp: RagQueryIn):
@@ -1813,4 +1818,4 @@ def rag_query(inp: RagQueryIn):
         ))
     return RagQueryOut(query=inp.query, top_k=inp.top_k, hits=out_hits)
 
-
+app.include_router(execute_router)

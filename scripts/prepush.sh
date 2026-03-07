@@ -30,5 +30,9 @@ if test -x "$ROOT/scripts/index_libs_qdrant.sh"; then
 fi
 test -x "$ROOT/scripts/smoke_router.sh"
 "$ROOT/scripts/smoke_router.sh"
+if test -x "$ROOT/scripts/smoke_execute_core.sh"; then
+  "$ROOT/scripts/smoke_execute_core.sh" >/dev/null
+fi
+
 test -x "$ROOT/scripts/smoke_library_budget.sh"
 "$ROOT/scripts/smoke_library_budget.sh"
