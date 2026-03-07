@@ -21,8 +21,13 @@ fi
 if test -x "$ROOT/scripts/smoke_ab_patterns.sh"; then
   "$ROOT/scripts/smoke_ab_patterns.sh" >/dev/null
 fi
-test -x "$ROOT/scripts/index_libs_qdrant.sh"
-"$ROOT/scripts/index_libs_qdrant.sh"
+if test -x "$ROOT/scripts/index_libs_qdrant.sh"; then
+  if curl -fsS http://127.0.0.1:6333/collections >/dev/null 2>&1; then
+    "$ROOT/scripts/index_libs_qdrant.sh"
+  else
+    echo "⚠️ skipping qdrant indexing: Qdrant not reachable on 127.0.0.1:6333"
+  fi
+fi
 test -x "$ROOT/scripts/smoke_router.sh"
 "$ROOT/scripts/smoke_router.sh"
 test -x "$ROOT/scripts/smoke_library_budget.sh"
