@@ -9,7 +9,7 @@ from api.app.core.executor import execute_feature, make_plan, repair_result
 from api.app.core.file_emitters import emit_stage_files
 from api.app.core.ledger import new_run_id, save_run
 from api.app.core.project_gates import gate_required
-from api.app.core.project_resume import build_prior_outputs_from_project
+from api.app.core.project_resume import build_prior_outputs_from_project, project_has_stage
 from api.app.core.project_store import (
     ensure_project,
     append_project_run,
@@ -17,6 +17,7 @@ from api.app.core.project_store import (
     update_project_state,
 )
 from api.app.core.router import route_execute
+from api.app.core.stage_dependencies import missing_dependencies
 from api.app.core.stage_synthesizer import synthesize_stage
 from api.app.core.validator import validate
 
@@ -37,24 +38,24 @@ def rerun_stage(inp: ProjectRerunIn):
     ensure_project(inp.project_id)
 
     state = get_project_state(inp.project_id)
-    planned = list(state.get("planned_stages") or [])
     approved = set(state.get("approved_stages") or [])
+    already_present = project_has_stage(inp.project_id, inp.stage)
 
-    # allow rerun if the stage is part of the planned pipeline
-    if planned and inp.stage not in planned:
-        raise HTTPException(status_code=404, detail=f"stage not planned for project: {inp.stage}")
-
-    if gate_required(inp.stage) and inp.stage not in approved:
-        raise HTTPException(status_code=403, detail=f"stage requires approval before rerun: {inp.stage}")
+    # stage must either already exist, or be explicitly approved if it is a gated future stage
+    if not already_present:
+        if gate_required(inp.stage) and inp.stage not in approved:
+            raise HTTPException(
+                status_code=403,
+                detail=f"stage requires approval before rerun: {inp.stage}",
+            )
 
     prior_outputs = build_prior_outputs_from_project(inp.project_id)
-
     present = [item.get("stage") for item in prior_outputs if item.get("stage")]
-    missing = missing_dependencies(inp.stage, present)
-    if missing:
+    deps_missing = missing_dependencies(inp.stage, present)
+    if deps_missing:
         raise HTTPException(
             status_code=409,
-            detail=f"missing stage dependencies for {inp.stage}: {', '.join(missing)}",
+            detail=f"missing stage dependencies for {inp.stage}: {', '.join(deps_missing)}",
         )
 
     lines = [
@@ -62,13 +63,16 @@ def rerun_stage(inp: ProjectRerunIn):
         f"Original prompt: {inp.prompt}",
         f"Current stage: {inp.stage}",
     ]
+
     if prior_outputs:
         lines.append("Prior artifact briefs:")
         for item in prior_outputs[-3:]:
             art = item.get("artifact") or {}
             summary = " ".join(str(art.get("summary") or "").split())[:160]
             next_inputs = art.get("next_stage_inputs") or {}
-            lines.append(f"- {item['stage']} | summary={summary} | next_inputs={next_inputs}")
+            lines.append(
+                f"- {item['stage']} | summary={summary} | next_inputs={next_inputs}"
+            )
 
     payload = ExecuteIn(
         prompt="\n".join(lines),

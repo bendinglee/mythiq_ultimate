@@ -10,7 +10,7 @@ test -x "$PY" || { echo "❌ missing venv python: $PY"; exit 1; }
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-# 1) create gated project
+# 1) create project
 curl -fsS "$BASE/v1/project/run" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -18,9 +18,9 @@ curl -fsS "$BASE/v1/project/run" \
     "goal":"create a multi-stage project pipeline",
     "mode":"project",
     "improve": true
-  }' > "$tmp/project.json"
+  }' > "$tmp/run.json"
 
-PROJECT_ID="$("$PY" - "$tmp/project.json" <<'PY'
+PROJECT_ID="$("$PY" - "$tmp/run.json" <<'PY'
 import json, sys
 from pathlib import Path
 j = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
@@ -40,7 +40,8 @@ curl -fsS "$BASE/v1/project/approve_stage" \
   }" > "$tmp/approve.json"
 
 # 4) rerun image stage
-curl -fsS "$BASE/v1/project/rerun_stage" \
+code="$(curl -sS -o "$tmp/rerun.json" -w "%{http_code}" \
+  "$BASE/v1/project/rerun_stage" \
   -H 'Content-Type: application/json' \
   -d "{
     \"project_id\":\"${PROJECT_ID}\",
@@ -48,7 +49,14 @@ curl -fsS "$BASE/v1/project/rerun_stage" \
     \"prompt\":\"Build a cinematic mythic trailer concept\",
     \"goal\":\"create a multi-stage project pipeline\",
     \"improve\": true
-  }" > "$tmp/rerun.json"
+  }")"
+
+if [ "$code" != "200" ]; then
+  echo "❌ rerun_stage returned HTTP $code"
+  echo "---- body ----"
+  cat "$tmp/rerun.json" || true
+  exit 1
+fi
 
 # 5) verify
 "$PY" - "$tmp/status_before.json" "$tmp/approve.json" "$tmp/rerun.json" <<'PY'
