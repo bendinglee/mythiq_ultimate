@@ -10,6 +10,8 @@ KEYWORDS = {
     "code": ["python", "bug", "fix", "script", "api", "backend", "frontend", "fastapi", "debug", "patch", "function"],
     "game": ["game", "phaser", "unity", "level", "enemy", "player", "mechanic", "platformer", "puzzle", "rpg"],
     "text": ["write", "essay", "article", "story", "summary", "outline", "script", "plan", "document"],
+    "image": ["image", "poster", "thumbnail", "concept art", "illustration", "cover art", "visual"],
+    "shorts": ["short", "shorts", "hook", "viral", "clip", "caption", "cut", "tiktok", "reel"],
 }
 
 
@@ -24,7 +26,7 @@ def _prompt_hint(prompt: str) -> str:
 
 def route_execute(inp: ExecuteIn) -> tuple[RouteOut, str | None]:
     prompt = inp.prompt.lower()
-    scores: Dict[str, float] = {"text": 0.2, "code": 0.2, "game": 0.2}
+    scores: Dict[str, float] = {"text": 0.2, "code": 0.2, "game": 0.2, "image": 0.2, "shorts": 0.2}
     reasons: List[str] = []
 
     want = (inp.want or "").strip().lower()

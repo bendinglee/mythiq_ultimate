@@ -34,5 +34,9 @@ if test -x "$ROOT/scripts/smoke_execute_core.sh"; then
   "$ROOT/scripts/smoke_execute_core.sh" >/dev/null
 fi
 
+if test -x "$ROOT/scripts/smoke_multimodal_core.sh"; then
+  "$ROOT/scripts/smoke_multimodal_core.sh" >/dev/null
+fi
+
 test -x "$ROOT/scripts/smoke_library_budget.sh"
 "$ROOT/scripts/smoke_library_budget.sh"

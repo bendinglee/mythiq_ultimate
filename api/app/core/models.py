@@ -4,14 +4,14 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
-FeatureName = Literal["text", "code", "game"]
+FeatureName = Literal["text", "code", "game", "image", "shorts"]
 
 
 class ExecuteIn(BaseModel):
     prompt: str = Field(..., min_length=1)
     goal: Optional[str] = None
     constraints: Dict[str, Any] = Field(default_factory=dict)
-    mode: str = Field(default="single")  # single | project
+    mode: str = Field(default="single")
     want: Optional[str] = None
     project_id: Optional[str] = None
     max_steps: int = Field(default=4, ge=1, le=20)
