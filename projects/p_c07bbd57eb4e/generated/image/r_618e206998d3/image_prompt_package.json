@@ -1,0 +1,14 @@
+{
+  "artifact_type": "image_prompt_package",
+  "summary": "# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior artifact briefs: - image | summary=# Image Generation Package ##",
+  "artifact_data": {
+    "style": "cinematic stylized",
+    "composition": "centered focal subject with depth",
+    "content": "# Image Generation Package\n\n## User Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: image\nPrior artifact briefs:\n- image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current sta\n- docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic\n- animation | summary=# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animat\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic stylized\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Base goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: image\nPrior artifact briefs:\n- image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current sta\n- docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic\n- animation | summary=# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animat\nStyle: cinematic stylized\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n"
+  },
+  "next_stage_inputs": {
+    "visual_summary": "# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior artifact briefs: - image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: B",
+    "style": "cinematic stylized",
+    "composition": "centered focal subject with depth"
+  }
+}

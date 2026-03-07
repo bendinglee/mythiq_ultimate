@@ -1,0 +1,172 @@
+{
+  "project_id": "p_fdba54815702",
+  "project_plan": {
+    "detected_feature": "shorts",
+    "goal": "produce a chain of outputs for a short-form content project",
+    "stages": [
+      "docs",
+      "shorts"
+    ],
+    "deliverables": [
+      "docs",
+      "shorts"
+    ],
+    "notes": [
+      "prefer compact stage briefs",
+      "retry weak stages once",
+      "preserve project continuity"
+    ]
+  },
+  "run_id": "r_94b6a2dc979e",
+  "stage": "shorts",
+  "route": {
+    "feature": "shorts",
+    "confidence": 0.5,
+    "reasons": [
+      "user_want:shorts",
+      "keyword_hits:text:3",
+      "keyword_hits:shorts:4",
+      "keyword_hits:docs:2"
+    ],
+    "scores": {
+      "text": 0.8,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.2,
+      "shorts": 2.2,
+      "docs": 0.6,
+      "animation": 0.2
+    }
+  },
+  "plan": {
+    "feature": "shorts",
+    "steps": [
+      {
+        "id": "s1",
+        "action": "find_hook",
+        "meta": {}
+      },
+      {
+        "id": "s2",
+        "action": "define_beat_structure",
+        "meta": {}
+      },
+      {
+        "id": "s3",
+        "action": "generate_edit_script",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "shorts",
+    "type": "markdown",
+    "content": "# Shorts Blueprint\n\n## Topic\nBase goal: produce a chain of outputs for a short-form content project\nOriginal prompt: Build a viral history short about an ancient empire\nCurrent stage: shorts\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_shorts_v1",
+      "artifact": {
+        "artifact_type": "shorts_blueprint",
+        "summary": "# Shorts Blueprint ## Topic Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: shorts Prior artifact briefs: - docs | summary=# Document",
+        "artifact_data": {
+          "beats": [
+            "1. Hook",
+            "2. Context",
+            "3. Escalation",
+            "4. Payoff",
+            "5. CTA / loop"
+          ],
+          "edit_notes": [
+            "docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+            "fast cuts",
+            "subtitle-first delivery",
+            "motion every 1-2 seconds",
+            "visual resets every beat",
+            "music swell before payoff",
+            "short script",
+            "caption rhythm"
+          ],
+          "content": "# Shorts Blueprint\n\n## Topic\nBase goal: produce a chain of outputs for a short-form content project\nOriginal prompt: Build a viral history short about an ancient empire\nCurrent stage: shorts\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n"
+        },
+        "next_stage_inputs": {
+          "hook_and_beats": "1. Hook | 2. Context | 3. Escalation | 4. Payoff | 5. CTA / loop",
+          "edit_notes": [
+            "docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+            "fast cuts",
+            "subtitle-first delivery",
+            "motion every 1-2 seconds",
+            "visual resets every beat"
+          ]
+        }
+      }
+    }
+  },
+  "artifact": {
+    "artifact_type": "shorts_blueprint",
+    "summary": "# Shorts Blueprint ## Topic Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: shorts Prior artifact briefs: - docs | summary=# Document",
+    "artifact_data": {
+      "beats": [
+        "1. Hook",
+        "2. Context",
+        "3. Escalation",
+        "4. Payoff",
+        "5. CTA / loop"
+      ],
+      "edit_notes": [
+        "docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+        "fast cuts",
+        "subtitle-first delivery",
+        "motion every 1-2 seconds",
+        "visual resets every beat",
+        "music swell before payoff",
+        "short script",
+        "caption rhythm"
+      ],
+      "content": "# Shorts Blueprint\n\n## Topic\nBase goal: produce a chain of outputs for a short-form content project\nOriginal prompt: Build a viral history short about an ancient empire\nCurrent stage: shorts\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n"
+    },
+    "next_stage_inputs": {
+      "hook_and_beats": "1. Hook | 2. Context | 3. Escalation | 4. Payoff | 5. CTA / loop",
+      "edit_notes": [
+        "docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+        "fast cuts",
+        "subtitle-first delivery",
+        "motion every 1-2 seconds",
+        "visual resets every beat"
+      ]
+    }
+  },
+  "synthesis": {
+    "summary": "# Shorts Blueprint ## Topic Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: shorts Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal produce a chain of ou",
+    "key_points": [
+      "docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+      "1. Hook",
+      "2. Context",
+      "3. Escalation",
+      "fast cuts"
+    ],
+    "artifacts": {
+      "feature": "shorts",
+      "type": "markdown",
+      "files": []
+    },
+    "next_stage_brief": "Stage=shorts. Feature=shorts. Summary=# Shorts Blueprint ## Topic Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: shorts Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal produce a chain of ou"
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true,
+      "artifact_present": true,
+      "artifact_data_present": true,
+      "next_stage_inputs_present": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}

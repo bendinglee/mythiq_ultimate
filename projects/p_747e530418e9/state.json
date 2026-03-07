@@ -1,0 +1,39 @@
+{
+  "planned_stages": [
+    "docs",
+    "image",
+    "animation"
+  ],
+  "approved_stages": [],
+  "gates": {
+    "docs": {
+      "stage": "docs",
+      "requires_approval": false,
+      "approved": true,
+      "blocked": false
+    },
+    "image": {
+      "stage": "image",
+      "requires_approval": true,
+      "approved": false,
+      "blocked": true
+    },
+    "animation": {
+      "stage": "animation",
+      "requires_approval": true,
+      "approved": false,
+      "blocked": true
+    }
+  },
+  "history": [
+    {
+      "run_id": "r_89ad8ea168e3",
+      "feature": "docs",
+      "score": 1.0
+    }
+  ],
+  "best_patterns": {
+    "docs": "default_docs_v1"
+  },
+  "blocked_stage": "image"
+}

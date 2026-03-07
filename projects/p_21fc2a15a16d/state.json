@@ -1,0 +1,38 @@
+{
+  "planned_stages": [
+    "docs",
+    "shorts"
+  ],
+  "approved_stages": [],
+  "gates": {
+    "docs": {
+      "stage": "docs",
+      "requires_approval": false,
+      "approved": true,
+      "blocked": false
+    },
+    "shorts": {
+      "stage": "shorts",
+      "requires_approval": false,
+      "approved": true,
+      "blocked": false
+    }
+  },
+  "history": [
+    {
+      "run_id": "r_c1eef6b9f246",
+      "feature": "docs",
+      "score": 1.0
+    },
+    {
+      "run_id": "r_8eb74ae3f768",
+      "feature": "shorts",
+      "score": 1.0
+    }
+  ],
+  "best_patterns": {
+    "docs": "default_docs_v1",
+    "shorts": "default_shorts_v1"
+  },
+  "blocked_stage": null
+}

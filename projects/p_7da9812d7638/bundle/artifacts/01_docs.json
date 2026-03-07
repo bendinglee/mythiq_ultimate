@@ -1,0 +1,106 @@
+{
+  "stage": "docs",
+  "route": {
+    "feature": "docs",
+    "confidence": 0.4545,
+    "reasons": [
+      "user_want:docs",
+      "keyword_hits:animation:1",
+      "reused_pattern:default_docs_v1"
+    ],
+    "scores": {
+      "text": 0.3,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.3,
+      "shorts": 0.3,
+      "docs": 1.5,
+      "animation": 0.5
+    }
+  },
+  "result": {
+    "ok": true,
+    "feature": "docs",
+    "type": "markdown",
+    "content": "# Document Blueprint\n\n## Goal\ncreate a multi-stage project pipeline\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n",
+    "files": [
+      "projects/p_7da9812d7638/generated/docs/r_50bb76a2f36d/document_blueprint.md",
+      "projects/p_7da9812d7638/generated/docs/r_50bb76a2f36d/document_blueprint.json"
+    ],
+    "meta": {
+      "pattern_used": "default_docs_v1",
+      "artifact": {
+        "artifact_type": "docs_blueprint",
+        "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2.",
+        "artifact_data": {
+          "headings": [
+            "Document Blueprint",
+            "Goal",
+            "Prompt",
+            "Recommended Structure",
+            "Notes"
+          ],
+          "key_points": [
+            "keep sections scannable",
+            "optimize for practical execution",
+            "pattern: default_docs_v1"
+          ],
+          "content": "# Document Blueprint\n\n## Goal\ncreate a multi-stage project pipeline\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n"
+        },
+        "next_stage_inputs": {
+          "doc_summary": "Document Blueprint Goal Prompt Recommended Structure Notes",
+          "key_points": [
+            "keep sections scannable",
+            "optimize for practical execution",
+            "pattern: default_docs_v1"
+          ]
+        }
+      }
+    }
+  },
+  "artifact": {
+    "artifact_type": "docs_blueprint",
+    "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2.",
+    "artifact_data": {
+      "headings": [
+        "Document Blueprint",
+        "Goal",
+        "Prompt",
+        "Recommended Structure",
+        "Notes"
+      ],
+      "key_points": [
+        "keep sections scannable",
+        "optimize for practical execution",
+        "pattern: default_docs_v1"
+      ],
+      "content": "# Document Blueprint\n\n## Goal\ncreate a multi-stage project pipeline\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n"
+    },
+    "next_stage_inputs": {
+      "doc_summary": "Document Blueprint Goal Prompt Recommended Structure Notes",
+      "key_points": [
+        "keep sections scannable",
+        "optimize for practical execution",
+        "pattern: default_docs_v1"
+      ]
+    }
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true,
+      "artifact_present": true,
+      "artifact_data_present": true,
+      "next_stage_inputs_present": true,
+      "docs_has_headings": true,
+      "docs_has_key_points": true,
+      "docs_has_summary_input": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  }
+}

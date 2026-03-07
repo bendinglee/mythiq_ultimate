@@ -1,0 +1,12 @@
+{
+  "history": [
+    {
+      "run_id": "r_507528c9ad90",
+      "feature": "image",
+      "score": 1.0
+    }
+  ],
+  "best_patterns": {
+    "image": "default_image_v1"
+  }
+}

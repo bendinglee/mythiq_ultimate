@@ -1,0 +1,134 @@
+{
+  "run_id": "r_507528c9ad90",
+  "project_id": "p_aec42f127284",
+  "route": {
+    "feature": "image",
+    "confidence": 0.5625,
+    "reasons": [
+      "user_want:image",
+      "keyword_hits:text:1",
+      "keyword_hits:image:2"
+    ],
+    "scores": {
+      "text": 0.4,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 1.8,
+      "shorts": 0.2,
+      "docs": 0.2,
+      "animation": 0.2
+    }
+  },
+  "plan": {
+    "feature": "image",
+    "steps": [
+      {
+        "id": "i1",
+        "action": "extract_visual_subject",
+        "meta": {}
+      },
+      {
+        "id": "i2",
+        "action": "define_style_and_composition",
+        "meta": {}
+      },
+      {
+        "id": "i3",
+        "action": "produce_image_prompt_package",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "image",
+    "type": "markdown",
+    "content": "# Image Generation Package\n\n## User Prompt\nCreate a YouTube thumbnail image for a dramatic sci-fi story\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic illustrated\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Create a YouTube thumbnail image for a dramatic sci-fi story\nStyle: cinematic illustrated\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n",
+    "files": [
+      "projects/p_aec42f127284/generated/image/r_507528c9ad90/image_prompt_package.md",
+      "projects/p_aec42f127284/generated/image/r_507528c9ad90/image_prompt_package.json"
+    ],
+    "meta": {
+      "pattern_used": "default_image_v1",
+      "artifact": {
+        "artifact_type": "image_prompt_package",
+        "summary": "# Image Generation Package ## User Prompt Create a YouTube thumbnail image for a dramatic sci-fi story ## Visual Intent - subject clarity - strong silhouette - readable composition - high-impact focal point ## Style - cinematic illustrated ",
+        "artifact_data": {
+          "style": "cinematic illustrated",
+          "composition": "centered focal subject with depth",
+          "content": "# Image Generation Package\n\n## User Prompt\nCreate a YouTube thumbnail image for a dramatic sci-fi story\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic illustrated\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Create a YouTube thumbnail image for a dramatic sci-fi story\nStyle: cinematic illustrated\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n"
+        },
+        "next_stage_inputs": {
+          "visual_summary": "# Image Generation Package ## User Prompt Create a YouTube thumbnail image for a dramatic sci-fi story ## Visual Intent - subject clarity - strong silhouette - readable composition - high-impact focal point ## Style - cinematic illustrated - non-photoreal by default - production-ready prompt scaffold ## Prompt Package ",
+          "style": "cinematic illustrated",
+          "composition": "centered focal subject with depth"
+        }
+      }
+    }
+  },
+  "artifact": {
+    "artifact_type": "image_prompt_package",
+    "summary": "# Image Generation Package ## User Prompt Create a YouTube thumbnail image for a dramatic sci-fi story ## Visual Intent - subject clarity - strong silhouette - readable composition - high-impact focal point ## Style - cinematic illustrated ",
+    "artifact_data": {
+      "style": "cinematic illustrated",
+      "composition": "centered focal subject with depth",
+      "content": "# Image Generation Package\n\n## User Prompt\nCreate a YouTube thumbnail image for a dramatic sci-fi story\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic illustrated\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Create a YouTube thumbnail image for a dramatic sci-fi story\nStyle: cinematic illustrated\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n"
+    },
+    "next_stage_inputs": {
+      "visual_summary": "# Image Generation Package ## User Prompt Create a YouTube thumbnail image for a dramatic sci-fi story ## Visual Intent - subject clarity - strong silhouette - readable composition - high-impact focal point ## Style - cinematic illustrated - non-photoreal by default - production-ready prompt scaffold ## Prompt Package ",
+      "style": "cinematic illustrated",
+      "composition": "centered focal subject with depth"
+    }
+  },
+  "synthesis": {
+    "summary": "# Image Generation Package ## User Prompt Create a YouTube thumbnail image for a dramatic sci-fi story ## Visual Intent - subject clarity - strong silhouette - readable composition - high-impact focal point ## Style - cinematic illustrated - non-photoreal by default - production-",
+    "key_points": [
+      "subject clarity",
+      "strong silhouette",
+      "readable composition",
+      "high-impact focal point",
+      "cinematic illustrated"
+    ],
+    "artifacts": {
+      "feature": "image",
+      "type": "markdown",
+      "files": []
+    },
+    "next_stage_brief": "Stage=image. Feature=image. Summary=# Image Generation Package ## User Prompt Create a YouTube thumbnail image for a dramatic sci-fi story ## Visual Intent - subject clarity - strong silhouette - readable composition - high-impact focal point ## Style - cinematic illustrated - non-photoreal by default - production-"
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true,
+      "artifact_present": true,
+      "artifact_data_present": true,
+      "next_stage_inputs_present": true,
+      "image_has_style": true,
+      "image_has_composition": true,
+      "image_has_visual_summary": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "reliability": {
+    "attempts": 1,
+    "fallback_used": false,
+    "final_feature": "image",
+    "tried_features": [
+      "image"
+    ],
+    "reused_pattern": null
+  },
+  "emitted": {
+    "feature": "image",
+    "root": "projects/p_aec42f127284/generated/image/r_507528c9ad90",
+    "files": [
+      "projects/p_aec42f127284/generated/image/r_507528c9ad90/image_prompt_package.md",
+      "projects/p_aec42f127284/generated/image/r_507528c9ad90/image_prompt_package.json"
+    ]
+  }
+}

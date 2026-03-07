@@ -1,0 +1,27 @@
+{
+  "artifact_type": "docs_blueprint",
+  "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2.",
+  "artifact_data": {
+    "headings": [
+      "Document Blueprint",
+      "Goal",
+      "Prompt",
+      "Recommended Structure",
+      "Notes"
+    ],
+    "key_points": [
+      "keep sections scannable",
+      "optimize for practical execution",
+      "pattern: default_docs_v1"
+    ],
+    "content": "# Document Blueprint\n\n## Goal\ncreate a multi-stage project pipeline\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n"
+  },
+  "next_stage_inputs": {
+    "doc_summary": "Document Blueprint Goal Prompt Recommended Structure Notes",
+    "key_points": [
+      "keep sections scannable",
+      "optimize for practical execution",
+      "pattern: default_docs_v1"
+    ]
+  }
+}

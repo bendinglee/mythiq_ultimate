@@ -1,0 +1,12 @@
+{
+  "history": [
+    {
+      "run_id": "r_ae0157093121",
+      "feature": "shorts",
+      "score": 1.0
+    }
+  ],
+  "best_patterns": {
+    "shorts": "default_shorts_v1"
+  }
+}

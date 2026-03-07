@@ -1,0 +1,54 @@
+{
+  "project_id": "p_f82fe1288d2f",
+  "final_output": {
+    "project_id": "p_f82fe1288d2f",
+    "deliverables": [
+      {
+        "stage": "docs",
+        "feature": "docs",
+        "artifact_type": "docs_blueprint",
+        "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2.",
+        "pattern_used": "default_docs_v1"
+      },
+      {
+        "stage": "image",
+        "feature": "image",
+        "artifact_type": "image_prompt_package",
+        "summary": "# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal c",
+        "pattern_used": "default_image_v1"
+      },
+      {
+        "stage": "animation",
+        "feature": "animation",
+        "artifact_type": "animation_plan",
+        "summary": "# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animation Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal create ",
+        "pattern_used": "default_animation_v1"
+      }
+    ],
+    "final_summary": "Project p_f82fe1288d2f completed with 3 deliverable(s)."
+  },
+  "deliverable_count": 3,
+  "stages": [
+    {
+      "stage": "docs",
+      "feature": "docs",
+      "artifact_type": "docs_blueprint",
+      "json_path": "projects/p_f82fe1288d2f/bundle/artifacts/01_docs.json",
+      "markdown_path": "projects/p_f82fe1288d2f/bundle/artifacts/01_docs.md"
+    },
+    {
+      "stage": "image",
+      "feature": "image",
+      "artifact_type": "image_prompt_package",
+      "json_path": "projects/p_f82fe1288d2f/bundle/artifacts/02_image.json",
+      "markdown_path": "projects/p_f82fe1288d2f/bundle/artifacts/02_image.md"
+    },
+    {
+      "stage": "animation",
+      "feature": "animation",
+      "artifact_type": "animation_plan",
+      "json_path": "projects/p_f82fe1288d2f/bundle/artifacts/03_animation.json",
+      "markdown_path": "projects/p_f82fe1288d2f/bundle/artifacts/03_animation.md"
+    }
+  ]
+}

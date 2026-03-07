@@ -1,0 +1,26 @@
+{
+  "project_id": "p_62d8f31b8f06",
+  "final_output": {
+    "project_id": "p_62d8f31b8f06",
+    "deliverables": [
+      {
+        "stage": "docs",
+        "feature": "docs",
+        "artifact_type": "docs_blueprint",
+        "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2.",
+        "pattern_used": "default_docs_v1"
+      }
+    ],
+    "final_summary": "Project p_62d8f31b8f06 completed with 1 deliverable(s)."
+  },
+  "deliverable_count": 1,
+  "stages": [
+    {
+      "stage": "docs",
+      "feature": "docs",
+      "artifact_type": "docs_blueprint",
+      "json_path": "projects/p_62d8f31b8f06/bundle/artifacts/01_docs.json",
+      "markdown_path": "projects/p_62d8f31b8f06/bundle/artifacts/01_docs.md"
+    }
+  ]
+}

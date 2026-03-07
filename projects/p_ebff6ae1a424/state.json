@@ -1,0 +1,48 @@
+{
+  "planned_stages": [
+    "docs",
+    "image",
+    "animation"
+  ],
+  "approved_stages": [
+    "image"
+  ],
+  "gates": {
+    "docs": {
+      "stage": "docs",
+      "requires_approval": false,
+      "approved": true,
+      "blocked": false
+    },
+    "image": {
+      "stage": "image",
+      "requires_approval": true,
+      "approved": false,
+      "blocked": true
+    },
+    "animation": {
+      "stage": "animation",
+      "requires_approval": true,
+      "approved": false,
+      "blocked": true
+    }
+  },
+  "history": [
+    {
+      "run_id": "r_7eb181a27f7f",
+      "feature": "docs",
+      "score": 1.0
+    },
+    {
+      "run_id": "r_cf814a5b5302",
+      "feature": "image",
+      "score": 1.0
+    }
+  ],
+  "best_patterns": {
+    "docs": "default_docs_v1",
+    "image": "default_image_v1"
+  },
+  "blocked_stage": null,
+  "last_completed_stage": "image"
+}

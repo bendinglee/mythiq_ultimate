@@ -1,0 +1,173 @@
+{
+  "project_id": "p_a54c6ac18866",
+  "project_plan": {
+    "detected_feature": "animation",
+    "goal": "create a multi-stage project pipeline",
+    "stages": [
+      "docs",
+      "image",
+      "animation"
+    ],
+    "deliverables": [
+      "docs",
+      "image",
+      "animation"
+    ],
+    "notes": [
+      "prefer compact stage briefs",
+      "retry weak stages once",
+      "preserve project continuity"
+    ]
+  },
+  "run_id": "r_22194fba74ef",
+  "stage": "docs",
+  "route": {
+    "feature": "docs",
+    "confidence": 0.4545,
+    "reasons": [
+      "user_want:docs",
+      "keyword_hits:animation:1",
+      "reused_pattern:default_docs_v1"
+    ],
+    "scores": {
+      "text": 0.3,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.3,
+      "shorts": 0.3,
+      "docs": 1.5,
+      "animation": 0.5
+    }
+  },
+  "plan": {
+    "feature": "docs",
+    "steps": [
+      {
+        "id": "d1",
+        "action": "extract_goal",
+        "meta": {}
+      },
+      {
+        "id": "d2",
+        "action": "structure_sections",
+        "meta": {}
+      },
+      {
+        "id": "d3",
+        "action": "generate_document_blueprint",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "docs",
+    "type": "markdown",
+    "content": "# Document Blueprint\n\n## Goal\ncreate a multi-stage project pipeline\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n",
+    "files": [
+      "projects/p_a54c6ac18866/generated/docs/r_22194fba74ef/document_blueprint.md",
+      "projects/p_a54c6ac18866/generated/docs/r_22194fba74ef/document_blueprint.json"
+    ],
+    "meta": {
+      "pattern_used": "default_docs_v1",
+      "artifact": {
+        "artifact_type": "docs_blueprint",
+        "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2.",
+        "artifact_data": {
+          "headings": [
+            "Document Blueprint",
+            "Goal",
+            "Prompt",
+            "Recommended Structure",
+            "Notes"
+          ],
+          "key_points": [
+            "keep sections scannable",
+            "optimize for practical execution",
+            "pattern: default_docs_v1"
+          ],
+          "content": "# Document Blueprint\n\n## Goal\ncreate a multi-stage project pipeline\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n"
+        },
+        "next_stage_inputs": {
+          "doc_summary": "Document Blueprint Goal Prompt Recommended Structure Notes",
+          "key_points": [
+            "keep sections scannable",
+            "optimize for practical execution",
+            "pattern: default_docs_v1"
+          ]
+        }
+      }
+    }
+  },
+  "artifact": {
+    "artifact_type": "docs_blueprint",
+    "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2.",
+    "artifact_data": {
+      "headings": [
+        "Document Blueprint",
+        "Goal",
+        "Prompt",
+        "Recommended Structure",
+        "Notes"
+      ],
+      "key_points": [
+        "keep sections scannable",
+        "optimize for practical execution",
+        "pattern: default_docs_v1"
+      ],
+      "content": "# Document Blueprint\n\n## Goal\ncreate a multi-stage project pipeline\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n"
+    },
+    "next_stage_inputs": {
+      "doc_summary": "Document Blueprint Goal Prompt Recommended Structure Notes",
+      "key_points": [
+        "keep sections scannable",
+        "optimize for practical execution",
+        "pattern: default_docs_v1"
+      ]
+    }
+  },
+  "synthesis": {
+    "summary": "# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2. Executive Summary 3. Problem / Opportun",
+    "key_points": [
+      "1. Title",
+      "2. Executive Summary",
+      "3. Problem / Opportunity",
+      "keep sections scannable",
+      "optimize for practical execution"
+    ],
+    "artifacts": {
+      "feature": "docs",
+      "type": "markdown",
+      "files": []
+    },
+    "next_stage_brief": "Stage=docs. Feature=docs. Summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2. Executive Summary 3. Problem / Opportun"
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true,
+      "artifact_present": true,
+      "artifact_data_present": true,
+      "next_stage_inputs_present": true,
+      "docs_has_headings": true,
+      "docs_has_key_points": true,
+      "docs_has_summary_input": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": "default_docs_v1",
+  "emitted": {
+    "feature": "docs",
+    "root": "projects/p_a54c6ac18866/generated/docs/r_22194fba74ef",
+    "files": [
+      "projects/p_a54c6ac18866/generated/docs/r_22194fba74ef/document_blueprint.md",
+      "projects/p_a54c6ac18866/generated/docs/r_22194fba74ef/document_blueprint.json"
+    ]
+  }
+}

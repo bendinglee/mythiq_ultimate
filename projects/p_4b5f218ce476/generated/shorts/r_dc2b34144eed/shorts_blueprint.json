@@ -1,0 +1,34 @@
+{
+  "artifact_type": "shorts_blueprint",
+  "summary": "# Shorts Blueprint ## Topic Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: shorts Prior artifact briefs: - docs | summary=# Document",
+  "artifact_data": {
+    "beats": [
+      "1. Hook",
+      "2. Context",
+      "3. Escalation",
+      "4. Payoff",
+      "5. CTA / loop"
+    ],
+    "edit_notes": [
+      "docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+      "fast cuts",
+      "subtitle-first delivery",
+      "motion every 1-2 seconds",
+      "visual resets every beat",
+      "music swell before payoff",
+      "short script",
+      "caption rhythm"
+    ],
+    "content": "# Shorts Blueprint\n\n## Topic\nBase goal: produce a chain of outputs for a short-form content project\nOriginal prompt: Build a viral history short about an ancient empire\nCurrent stage: shorts\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n"
+  },
+  "next_stage_inputs": {
+    "hook_and_beats": "1. Hook | 2. Context | 3. Escalation | 4. Payoff | 5. CTA / loop",
+    "edit_notes": [
+      "docs | summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+      "fast cuts",
+      "subtitle-first delivery",
+      "motion every 1-2 seconds",
+      "visual resets every beat"
+    ]
+  }
+}

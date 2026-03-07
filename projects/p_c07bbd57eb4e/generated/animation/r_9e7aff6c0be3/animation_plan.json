@@ -1,0 +1,34 @@
+{
+  "artifact_type": "animation_plan",
+  "summary": "# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animation Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal create ",
+  "artifact_data": {
+    "shot_list": [
+      "1. Establishing shot",
+      "2. Subject introduction",
+      "3. Motion escalation",
+      "4. Close-up emphasis",
+      "5. Payoff frame"
+    ],
+    "notes": [
+      "docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+      "image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}",
+      "visual continuity first",
+      "shot-to-shot clarity",
+      "simple camera motion before complexity",
+      "keep asset reuse high",
+      "shot list",
+      "scene beat notes"
+    ],
+    "content": "# Animation Shot Plan\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: animation\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n- image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}\n\n## Shot Flow\n1. Establishing shot\n2. Subject introduction\n3. Motion escalation\n4. Close-up emphasis\n5. Payoff frame\n\n## Production Notes\n- visual continuity first\n- shot-to-shot clarity\n- simple camera motion before complexity\n- keep asset reuse high\n\n## Deliverables\n- shot list\n- scene beat notes\n- animation prompt package\n\n## Pattern\ndefault_animation_v1\n"
+  },
+  "next_stage_inputs": {
+    "shot_summary": "1. Establishing shot | 2. Subject introduction | 3. Motion escalation | 4. Close-up emphasis | 5. Payoff frame",
+    "notes": [
+      "docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+      "image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}",
+      "visual continuity first",
+      "shot-to-shot clarity",
+      "simple camera motion before complexity"
+    ]
+  }
+}

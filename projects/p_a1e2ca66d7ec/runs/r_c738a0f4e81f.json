@@ -1,0 +1,163 @@
+{
+  "run_id": "r_c738a0f4e81f",
+  "project_id": "p_a1e2ca66d7ec",
+  "route": {
+    "feature": "shorts",
+    "confidence": 0.5882,
+    "reasons": [
+      "user_want:shorts",
+      "keyword_hits:text:1",
+      "keyword_hits:shorts:3"
+    ],
+    "scores": {
+      "text": 0.4,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.2,
+      "shorts": 2.0,
+      "docs": 0.2,
+      "animation": 0.2
+    }
+  },
+  "plan": {
+    "feature": "shorts",
+    "steps": [
+      {
+        "id": "s1",
+        "action": "find_hook",
+        "meta": {}
+      },
+      {
+        "id": "s2",
+        "action": "define_beat_structure",
+        "meta": {}
+      },
+      {
+        "id": "s3",
+        "action": "generate_edit_script",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "shorts",
+    "type": "markdown",
+    "content": "# Shorts Blueprint\n\n## Topic\nTurn a long history topic into a viral short with a strong hook\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_shorts_v1",
+      "artifact": {
+        "artifact_type": "shorts_blueprint",
+        "summary": "# Shorts Blueprint ## Topic Turn a long history topic into a viral short with a strong hook ## Hook (0-3s) Open with the strongest curiosity gap or emotional claim. ## Beat Structure 1. Hook 2. Context 3. Escalation 4. Payoff 5. CTA / loop ",
+        "artifact_data": {
+          "beats": [
+            "1. Hook",
+            "2. Context",
+            "3. Escalation",
+            "4. Payoff",
+            "5. CTA / loop"
+          ],
+          "edit_notes": [
+            "fast cuts",
+            "subtitle-first delivery",
+            "motion every 1-2 seconds",
+            "visual resets every beat",
+            "music swell before payoff",
+            "short script",
+            "caption rhythm",
+            "cut notes"
+          ],
+          "content": "# Shorts Blueprint\n\n## Topic\nTurn a long history topic into a viral short with a strong hook\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n"
+        },
+        "next_stage_inputs": {
+          "hook_and_beats": "1. Hook | 2. Context | 3. Escalation | 4. Payoff | 5. CTA / loop",
+          "edit_notes": [
+            "fast cuts",
+            "subtitle-first delivery",
+            "motion every 1-2 seconds",
+            "visual resets every beat",
+            "music swell before payoff"
+          ]
+        }
+      }
+    }
+  },
+  "artifact": {
+    "artifact_type": "shorts_blueprint",
+    "summary": "# Shorts Blueprint ## Topic Turn a long history topic into a viral short with a strong hook ## Hook (0-3s) Open with the strongest curiosity gap or emotional claim. ## Beat Structure 1. Hook 2. Context 3. Escalation 4. Payoff 5. CTA / loop ",
+    "artifact_data": {
+      "beats": [
+        "1. Hook",
+        "2. Context",
+        "3. Escalation",
+        "4. Payoff",
+        "5. CTA / loop"
+      ],
+      "edit_notes": [
+        "fast cuts",
+        "subtitle-first delivery",
+        "motion every 1-2 seconds",
+        "visual resets every beat",
+        "music swell before payoff",
+        "short script",
+        "caption rhythm",
+        "cut notes"
+      ],
+      "content": "# Shorts Blueprint\n\n## Topic\nTurn a long history topic into a viral short with a strong hook\n\n## Hook (0-3s)\nOpen with the strongest curiosity gap or emotional claim.\n\n## Beat Structure\n1. Hook\n2. Context\n3. Escalation\n4. Payoff\n5. CTA / loop\n\n## Edit Notes\n- fast cuts\n- subtitle-first delivery\n- motion every 1-2 seconds\n- visual resets every beat\n- music swell before payoff\n\n## Output Package\n- short script\n- caption rhythm\n- cut notes\n- scene prompt ideas\n\n## Pattern\ndefault_shorts_v1\n"
+    },
+    "next_stage_inputs": {
+      "hook_and_beats": "1. Hook | 2. Context | 3. Escalation | 4. Payoff | 5. CTA / loop",
+      "edit_notes": [
+        "fast cuts",
+        "subtitle-first delivery",
+        "motion every 1-2 seconds",
+        "visual resets every beat",
+        "music swell before payoff"
+      ]
+    }
+  },
+  "synthesis": {
+    "summary": "# Shorts Blueprint ## Topic Turn a long history topic into a viral short with a strong hook ## Hook (0-3s) Open with the strongest curiosity gap or emotional claim. ## Beat Structure 1. Hook 2. Context 3. Escalation 4. Payoff 5. CTA / loop ## Edit Notes - fast cuts - subtitle-fir",
+    "key_points": [
+      "1. Hook",
+      "2. Context",
+      "3. Escalation",
+      "fast cuts",
+      "subtitle-first delivery"
+    ],
+    "artifacts": {
+      "feature": "shorts",
+      "type": "markdown",
+      "files": []
+    },
+    "next_stage_brief": "Stage=shorts. Feature=shorts. Summary=# Shorts Blueprint ## Topic Turn a long history topic into a viral short with a strong hook ## Hook (0-3s) Open with the strongest curiosity gap or emotional claim. ## Beat Structure 1. Hook 2. Context 3. Escalation 4. Payoff 5. CTA / loop ## Edit Notes - fast cuts - subtitle-fir"
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true,
+      "artifact_present": true,
+      "artifact_data_present": true,
+      "next_stage_inputs_present": true,
+      "shorts_has_beats": true,
+      "shorts_has_edit_notes": true,
+      "shorts_has_handoff": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "reliability": {
+    "attempts": 1,
+    "fallback_used": false,
+    "final_feature": "shorts",
+    "tried_features": [
+      "shorts"
+    ],
+    "reused_pattern": null
+  }
+}

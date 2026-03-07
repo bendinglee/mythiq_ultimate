@@ -1,0 +1,40 @@
+{
+  "project_id": "p_21fc2a15a16d",
+  "final_output": {
+    "project_id": "p_21fc2a15a16d",
+    "deliverables": [
+      {
+        "stage": "docs",
+        "feature": "docs",
+        "artifact_type": "docs_blueprint",
+        "summary": "# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire C",
+        "pattern_used": "default_docs_v1"
+      },
+      {
+        "stage": "shorts",
+        "feature": "shorts",
+        "artifact_type": "shorts_blueprint",
+        "summary": "# Shorts Blueprint ## Topic Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: shorts Prior artifact briefs: - docs | summary=# Document",
+        "pattern_used": "default_shorts_v1"
+      }
+    ],
+    "final_summary": "Project p_21fc2a15a16d completed with 2 deliverable(s)."
+  },
+  "deliverable_count": 2,
+  "stages": [
+    {
+      "stage": "docs",
+      "feature": "docs",
+      "artifact_type": "docs_blueprint",
+      "json_path": "projects/p_21fc2a15a16d/bundle/artifacts/01_docs.json",
+      "markdown_path": "projects/p_21fc2a15a16d/bundle/artifacts/01_docs.md"
+    },
+    {
+      "stage": "shorts",
+      "feature": "shorts",
+      "artifact_type": "shorts_blueprint",
+      "json_path": "projects/p_21fc2a15a16d/bundle/artifacts/02_shorts.json",
+      "markdown_path": "projects/p_21fc2a15a16d/bundle/artifacts/02_shorts.md"
+    }
+  ]
+}
