@@ -1,0 +1,82 @@
+{
+  "run_id": "r_a9aa1fa17092",
+  "project_id": "p_af6301a0cb54",
+  "route": {
+    "feature": "docs",
+    "confidence": 0.4375,
+    "reasons": [
+      "user_want:docs",
+      "keyword_hits:text:1",
+      "keyword_hits:shorts:2"
+    ],
+    "scores": {
+      "text": 0.4,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.2,
+      "shorts": 0.6,
+      "docs": 1.4,
+      "animation": 0.2
+    }
+  },
+  "plan": {
+    "feature": "docs",
+    "steps": [
+      {
+        "id": "d1",
+        "action": "extract_goal",
+        "meta": {}
+      },
+      {
+        "id": "d2",
+        "action": "structure_sections",
+        "meta": {}
+      },
+      {
+        "id": "d3",
+        "action": "generate_document_blueprint",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "docs",
+    "type": "markdown",
+    "content": "# Document Blueprint\n\n## Goal\nproduce a chain of outputs for a short-form content project\n\n## Prompt\nBase goal: produce a chain of outputs for a short-form content project\nOriginal prompt: Build a viral history short about an ancient empire\nCurrent stage: docs\n\n## Recommended Structure\n1. Title\n2. Executive Summary\n3. Problem / Opportunity\n4. Proposed Direction\n5. Execution Plan\n6. Risks\n7. Next Actions\n\n## Notes\n- keep sections scannable\n- optimize for practical execution\n- pattern: default_docs_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_docs_v1"
+    }
+  },
+  "synthesis": {
+    "summary": "# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: docs ## Recommended Struct",
+    "key_points": [
+      "1. Title",
+      "2. Executive Summary",
+      "3. Problem / Opportunity",
+      "keep sections scannable",
+      "optimize for practical execution"
+    ],
+    "artifacts": {
+      "feature": "docs",
+      "type": "markdown",
+      "files": []
+    },
+    "next_stage_brief": "Stage=docs. Feature=docs. Summary=# Document Blueprint ## Goal produce a chain of outputs for a short-form content project ## Prompt Base goal: produce a chain of outputs for a short-form content project Original prompt: Build a viral history short about an ancient empire Current stage: docs ## Recommended Struct"
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}

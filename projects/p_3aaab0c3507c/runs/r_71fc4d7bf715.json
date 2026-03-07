@@ -1,0 +1,104 @@
+{
+  "run_id": "r_71fc4d7bf715",
+  "project_id": "p_3aaab0c3507c",
+  "project_plan": {
+    "detected_feature": "animation",
+    "goal": "create a multi-stage project pipeline",
+    "stages": [
+      "docs",
+      "image",
+      "animation"
+    ],
+    "deliverables": [
+      "docs",
+      "image",
+      "animation"
+    ],
+    "notes": [
+      "prefer compact stage briefs",
+      "retry weak stages once",
+      "preserve project continuity"
+    ]
+  },
+  "route": {
+    "feature": "image",
+    "confidence": 0.4,
+    "reasons": [
+      "user_want:image",
+      "keyword_hits:text:2",
+      "keyword_hits:image:1",
+      "keyword_hits:shorts:1",
+      "keyword_hits:docs:2",
+      "keyword_hits:animation:1"
+    ],
+    "scores": {
+      "text": 0.6,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 1.6,
+      "shorts": 0.4,
+      "docs": 0.6,
+      "animation": 0.4
+    }
+  },
+  "plan": {
+    "feature": "image",
+    "steps": [
+      {
+        "id": "i1",
+        "action": "extract_visual_subject",
+        "meta": {}
+      },
+      {
+        "id": "i2",
+        "action": "define_style_and_composition",
+        "meta": {}
+      },
+      {
+        "id": "i3",
+        "action": "produce_image_prompt_package",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "image",
+    "type": "markdown",
+    "content": "# Image Generation Package\n\n## User Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: image\nPrior stage briefs:\n- docs: Stage=docs. Feature=docs. Summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2. Executive Summary 3. Problem / Opportun\n\n## Visual Intent\n- subject clarity\n- strong silhouette\n- readable composition\n- high-impact focal point\n\n## Style\n- cinematic stylized\n- non-photoreal by default\n- production-ready prompt scaffold\n\n## Prompt Package\nSubject: Base goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: image\nPrior stage briefs:\n- docs: Stage=docs. Feature=docs. Summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2. Executive Summary 3. Problem / Opportun\nStyle: cinematic stylized\nLighting: dramatic readable lighting\nComposition: centered focal subject with depth\nQuality: highly detailed stylized concept art\n\n## Pattern\ndefault_image_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_image_v1"
+    }
+  },
+  "synthesis": {
+    "summary": "# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior stage briefs: - docs: Stage=docs. Feature=docs. Summary=# Document Blueprint ## Goal create a multi-stag",
+    "key_points": [
+      "docs: Stage=docs. Feature=docs. Summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: docs ## Recommended Structure 1. Title 2. Executive Summary 3. Problem / Opportun",
+      "subject clarity",
+      "strong silhouette",
+      "readable composition",
+      "high-impact focal point"
+    ],
+    "artifacts": {
+      "feature": "image",
+      "type": "markdown",
+      "files": []
+    },
+    "next_stage_brief": "Stage=image. Feature=image. Summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior stage briefs: - docs: Stage=docs. Feature=docs. Summary=# Document Blueprint ## Goal create a multi-stag"
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}
