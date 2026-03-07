@@ -38,5 +38,25 @@ if test -x "$ROOT/scripts/smoke_multimodal_core.sh"; then
   "$ROOT/scripts/smoke_multimodal_core.sh" >/dev/null
 fi
 
+if test -x "$ROOT/scripts/smoke_project_export.sh"; then
+  "$ROOT/scripts/smoke_project_export.sh" >/dev/null
+fi
+
+if test -x "$ROOT/scripts/smoke_project_zip.sh"; then
+  "$ROOT/scripts/smoke_project_zip.sh" >/dev/null
+fi
+
+if test -x "$ROOT/scripts/smoke_project_resume.sh"; then
+  "$ROOT/scripts/smoke_project_resume.sh" >/dev/null
+fi
+
+if test -x "$ROOT/scripts/smoke_stage_dependencies.sh"; then
+  "$ROOT/scripts/smoke_stage_dependencies.sh" >/dev/null
+fi
+
+if test -x "$ROOT/scripts/smoke_project_approval.sh"; then
+  "$ROOT/scripts/smoke_project_approval.sh" >/dev/null
+fi
+
 test -x "$ROOT/scripts/smoke_library_budget.sh"
 "$ROOT/scripts/smoke_library_budget.sh"

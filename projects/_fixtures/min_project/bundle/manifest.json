@@ -1,0 +1,13 @@
+{
+  "project_id": "p_fixture_min",
+  "deliverable_count": 1,
+  "stages": [
+    {
+      "stage": "docs",
+      "feature": "docs",
+      "artifact_type": "docs_blueprint",
+      "json_path": "projects/_fixtures/min_project/bundle/artifacts/01_docs.json",
+      "markdown_path": "projects/_fixtures/min_project/bundle/artifacts/01_docs.md"
+    }
+  ]
+}

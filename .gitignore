@@ -68,3 +68,14 @@ reports/*.csv
 # runtime state
 .enforced_game_dirs.txt
 logs/
+
+# runtime project outputs
+projects/p_*/
+projects/*/runs/
+projects/*/generated/
+projects/*/bundle/
+projects/*/state.json
+
+# keep explicit fixtures only
+!projects/_fixtures/
+!projects/_fixtures/**
