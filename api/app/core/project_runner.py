@@ -3,7 +3,9 @@ from __future__ import annotations
 import time
 from typing import List
 
+from api.app.core.artifact_projection import compact_next_inputs
 from api.app.core.executor import execute_feature, make_plan, repair_result
+from api.app.core.final_assembler import assemble_project_output
 from api.app.core.improve import learn
 from api.app.core.ledger import new_project_id, new_run_id, save_run
 from api.app.core.models import ExecuteIn, ProjectRunIn, ProjectRunOut, ProjectStageOut
@@ -14,16 +16,29 @@ from api.app.core.stage_synthesizer import synthesize_stage
 from api.app.core.validator import validate
 
 
+def _artifact_brief(prior_outputs: List[dict]) -> List[str]:
+    out = []
+    for item in prior_outputs[-2:]:
+        art = item.get("artifact") or {}
+        summary = " ".join(str(art.get("summary") or "").split())[:140]
+        next_inputs = compact_next_inputs(art)
+        out.append(
+            f"{item['stage']} | summary={summary} | next_inputs={next_inputs}"
+        )
+    return out
+
+
 def _stage_prompt(base_prompt: str, goal: str | None, prior_outputs: List[dict], stage: str) -> str:
     lines = [
         f"Base goal: {goal or base_prompt}",
         f"Original prompt: {base_prompt}",
         f"Current stage: {stage}",
     ]
-    if prior_outputs:
-        lines.append("Prior stage briefs:")
-        for item in prior_outputs[-2:]:
-            lines.append(f"- {item['stage']}: {item['brief']}")
+    briefs = _artifact_brief(prior_outputs)
+    if briefs:
+        lines.append("Prior artifact briefs:")
+        for b in briefs:
+            lines.append(f"- {b}")
     return "\n".join(lines)
 
 
@@ -48,6 +63,7 @@ def run_project(inp: ProjectRunIn) -> ProjectRunOut:
 
     out_stages: List[ProjectStageOut] = []
     prior_outputs: List[dict] = []
+    stage_records: List[dict] = []
 
     for stage in stages:
         run_id = new_run_id()
@@ -96,6 +112,21 @@ def run_project(inp: ProjectRunIn) -> ProjectRunOut:
             quality = validate(payload, result)
 
         synth = synthesize_stage(stage, result)
+        artifact = (result.meta or {}).get("artifact") or {}
+
+        stage_record = {
+            "run_id": run_id,
+            "stage": stage,
+            "route": route.model_dump(),
+            "plan": plan.model_dump(),
+            "result": result.model_dump(),
+            "artifact": artifact,
+            "synthesis": synth,
+            "quality": quality.model_dump(),
+            "repaired": repaired,
+            "reused_pattern": reused_pattern,
+        }
+        stage_records.append(stage_record)
 
         save_run(
             run_id=run_id,
@@ -106,23 +137,16 @@ def run_project(inp: ProjectRunIn) -> ProjectRunOut:
             feature=route.feature,
             confidence=route.confidence,
             plan_json=plan.model_dump() | {"project_plan": project_plan},
-            result_json=result.model_dump() | {"synthesis": synth},
+            result_json=result.model_dump() | {"synthesis": synth, "artifact": artifact},
             quality_json=quality.model_dump(),
             repaired=repaired,
             latency_ms=0,
         )
 
         append_project_run(project_id, {
-            "run_id": run_id,
             "project_id": project_id,
             "project_plan": project_plan,
-            "route": route.model_dump(),
-            "plan": plan.model_dump(),
-            "result": result.model_dump(),
-            "synthesis": synth,
-            "quality": quality.model_dump(),
-            "repaired": repaired,
-            "reused_pattern": reused_pattern,
+            **stage_record,
         })
 
         update_project_state(
@@ -148,13 +172,18 @@ def run_project(inp: ProjectRunIn) -> ProjectRunOut:
 
         prior_outputs.append({
             "stage": stage,
-            "brief": synth["next_stage_brief"],
+            "artifact": artifact,
         })
+
+    final_output = assemble_project_output(project_id, stage_records)
 
     return ProjectRunOut(
         ok=all(s.quality.ok for s in out_stages),
         project_id=project_id,
         stages=out_stages,
-        final_summary=f"Completed {len(out_stages)} stage(s) for project {project_id}",
-        metrics={"latency_ms": int((time.time() - started) * 1000)},
+        final_summary=final_output["final_summary"],
+        metrics={
+            "latency_ms": int((time.time() - started) * 1000),
+            "deliverable_count": len(final_output["deliverables"]),
+        },
     )

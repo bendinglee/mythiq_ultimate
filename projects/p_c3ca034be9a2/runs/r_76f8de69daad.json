@@ -1,0 +1,176 @@
+{
+  "project_id": "p_c3ca034be9a2",
+  "project_plan": {
+    "detected_feature": "animation",
+    "goal": "create a multi-stage project pipeline",
+    "stages": [
+      "docs",
+      "image",
+      "animation"
+    ],
+    "deliverables": [
+      "docs",
+      "image",
+      "animation"
+    ],
+    "notes": [
+      "prefer compact stage briefs",
+      "retry weak stages once",
+      "preserve project continuity"
+    ]
+  },
+  "run_id": "r_76f8de69daad",
+  "stage": "animation",
+  "route": {
+    "feature": "animation",
+    "confidence": 0.4091,
+    "reasons": [
+      "user_want:animation",
+      "keyword_hits:text:2",
+      "keyword_hits:image:2",
+      "keyword_hits:shorts:1",
+      "keyword_hits:docs:2",
+      "keyword_hits:animation:2"
+    ],
+    "scores": {
+      "text": 0.6,
+      "code": 0.2,
+      "game": 0.2,
+      "image": 0.6,
+      "shorts": 0.4,
+      "docs": 0.6,
+      "animation": 1.8
+    }
+  },
+  "plan": {
+    "feature": "animation",
+    "steps": [
+      {
+        "id": "a1",
+        "action": "extract_scene_goal",
+        "meta": {}
+      },
+      {
+        "id": "a2",
+        "action": "define_shot_sequence",
+        "meta": {}
+      },
+      {
+        "id": "a3",
+        "action": "generate_animation_plan",
+        "meta": {}
+      }
+    ]
+  },
+  "result": {
+    "ok": true,
+    "feature": "animation",
+    "type": "markdown",
+    "content": "# Animation Shot Plan\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: animation\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n- image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}\n\n## Shot Flow\n1. Establishing shot\n2. Subject introduction\n3. Motion escalation\n4. Close-up emphasis\n5. Payoff frame\n\n## Production Notes\n- visual continuity first\n- shot-to-shot clarity\n- simple camera motion before complexity\n- keep asset reuse high\n\n## Deliverables\n- shot list\n- scene beat notes\n- animation prompt package\n\n## Pattern\ndefault_animation_v1\n",
+    "files": [],
+    "meta": {
+      "pattern_used": "default_animation_v1",
+      "artifact": {
+        "artifact_type": "animation_plan",
+        "summary": "# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animation Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal create ",
+        "artifact_data": {
+          "shot_list": [
+            "1. Establishing shot",
+            "2. Subject introduction",
+            "3. Motion escalation",
+            "4. Close-up emphasis",
+            "5. Payoff frame"
+          ],
+          "notes": [
+            "docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+            "image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}",
+            "visual continuity first",
+            "shot-to-shot clarity",
+            "simple camera motion before complexity",
+            "keep asset reuse high",
+            "shot list",
+            "scene beat notes"
+          ],
+          "content": "# Animation Shot Plan\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: animation\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n- image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}\n\n## Shot Flow\n1. Establishing shot\n2. Subject introduction\n3. Motion escalation\n4. Close-up emphasis\n5. Payoff frame\n\n## Production Notes\n- visual continuity first\n- shot-to-shot clarity\n- simple camera motion before complexity\n- keep asset reuse high\n\n## Deliverables\n- shot list\n- scene beat notes\n- animation prompt package\n\n## Pattern\ndefault_animation_v1\n"
+        },
+        "next_stage_inputs": {
+          "shot_summary": "1. Establishing shot | 2. Subject introduction | 3. Motion escalation | 4. Close-up emphasis | 5. Payoff frame",
+          "notes": [
+            "docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+            "image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}",
+            "visual continuity first",
+            "shot-to-shot clarity",
+            "simple camera motion before complexity"
+          ]
+        }
+      }
+    }
+  },
+  "artifact": {
+    "artifact_type": "animation_plan",
+    "summary": "# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animation Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal create ",
+    "artifact_data": {
+      "shot_list": [
+        "1. Establishing shot",
+        "2. Subject introduction",
+        "3. Motion escalation",
+        "4. Close-up emphasis",
+        "5. Payoff frame"
+      ],
+      "notes": [
+        "docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+        "image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}",
+        "visual continuity first",
+        "shot-to-shot clarity",
+        "simple camera motion before complexity",
+        "keep asset reuse high",
+        "shot list",
+        "scene beat notes"
+      ],
+      "content": "# Animation Shot Plan\n\n## Prompt\nBase goal: create a multi-stage project pipeline\nOriginal prompt: Build a cinematic mythic trailer concept\nCurrent stage: animation\nPrior artifact briefs:\n- docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}\n- image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}\n\n## Shot Flow\n1. Establishing shot\n2. Subject introduction\n3. Motion escalation\n4. Close-up emphasis\n5. Payoff frame\n\n## Production Notes\n- visual continuity first\n- shot-to-shot clarity\n- simple camera motion before complexity\n- keep asset reuse high\n\n## Deliverables\n- shot list\n- scene beat notes\n- animation prompt package\n\n## Pattern\ndefault_animation_v1\n"
+    },
+    "next_stage_inputs": {
+      "shot_summary": "1. Establishing shot | 2. Subject introduction | 3. Motion escalation | 4. Close-up emphasis | 5. Payoff frame",
+      "notes": [
+        "docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+        "image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}",
+        "visual continuity first",
+        "shot-to-shot clarity",
+        "simple camera motion before complexity"
+      ]
+    }
+  },
+  "synthesis": {
+    "summary": "# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animation Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt",
+    "key_points": [
+      "docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt Base goal: create a multi-stage project pipeline Original promp | next_inputs={'doc_summary': 'Document Blueprint Goal Prompt Recommended Structure Notes', 'key_points': ['keep sections scannable', 'optimize for practical execution', 'pattern: default_docs_v1']}",
+      "image | summary=# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer | next_inputs={'visual_summary': '# Image Generation Package ## User Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: image Prior arti', 'style': 'cinematic stylized', 'composition': 'centered focal subject with depth'}",
+      "1. Establishing shot",
+      "2. Subject introduction",
+      "3. Motion escalation"
+    ],
+    "artifacts": {
+      "feature": "animation",
+      "type": "markdown",
+      "files": []
+    },
+    "next_stage_brief": "Stage=animation. Feature=animation. Summary=# Animation Shot Plan ## Prompt Base goal: create a multi-stage project pipeline Original prompt: Build a cinematic mythic trailer concept Current stage: animation Prior artifact briefs: - docs | summary=# Document Blueprint ## Goal create a multi-stage project pipeline ## Prompt"
+  },
+  "quality": {
+    "ok": true,
+    "score": 1.0,
+    "checks": {
+      "valid": true,
+      "complete": true,
+      "format_ok": true,
+      "useful_length": true,
+      "artifact_present": true,
+      "artifact_data_present": true,
+      "next_stage_inputs_present": true
+    },
+    "failures": [],
+    "repair_suggested": false
+  },
+  "repaired": false,
+  "reused_pattern": null
+}
