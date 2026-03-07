@@ -107,7 +107,8 @@ PY
 
 # outcomes/export
 check_ok "outcomes/export" "$BASE/v1/outcomes/export?limit=5" "$tmp/outcomes.csv" "$tmp/outcomes.hdr" "$tmp/outcomes.meta" "text/csv"
-head -n 1 "$tmp/outcomes.csv" | LC_ALL=C tr -d "\r\n" | grep -q "^ts," || fail "outcomes/export bad csv header"
+hdr="$(head -n 1 "$tmp/outcomes.csv" | LC_ALL=C tr -d '\r\n')"
+echo "$hdr" | rg -q '^(ts,kind,ok,detail|ts,feature,key,reward,meta_json|ts,feature,key_name,reward,meta_json|id,ts,feature,key_name,reward,meta_json)$' || fail "outcomes/export bad csv header"
 
 
 # generations/export
