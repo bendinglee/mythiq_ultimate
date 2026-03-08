@@ -26,24 +26,44 @@ def append_project_run(project_id: str, run_data: Dict[str, Any]) -> str:
     return str(run_path)
 
 
-def update_project_state(project_id: str, patch: Dict[str, Any]) -> Dict[str, Any]:
-    state = load_project_state(project_id) or {
-        "project_id": project_id,
-        "created_at": time.time(),
-        "updated_at": time.time(),
-        "goals": [],
-        "constraints": {},
-        "artifacts": [],
-        "history": [],
-        "best_patterns": {},
-    }
-    state["updated_at"] = time.time()
-    for k, v in patch.items():
-        if isinstance(v, list) and isinstance(state.get(k), list):
-            state[k].extend(v)
-        elif isinstance(v, dict) and isinstance(state.get(k), dict):
-            state[k].update(v)
+def update_project_state(project_id: str, state: dict) -> None:
+    import json
+    from pathlib import Path
+
+    root = Path("projects") / project_id
+    root.mkdir(parents=True, exist_ok=True)
+    fp = root / "state.json"
+
+    old = {}
+    if fp.exists():
+        try:
+            old = json.loads(fp.read_text(encoding="utf-8"))
+        except Exception:
+            old = {}
+
+    merged = dict(old)
+
+    for k, v in state.items():
+        if isinstance(v, dict) and isinstance(old.get(k), dict):
+            merged[k] = {**old.get(k, {}), **v}
+        elif isinstance(v, list) and isinstance(old.get(k), list):
+            if k in ("history",):
+                merged[k] = old.get(k, []) + v
+            else:
+                merged[k] = v
         else:
-            state[k] = v
-    save_project_state(project_id, state)
-    return state
+            merged[k] = v
+
+    fp.write_text(json.dumps(merged, indent=2), encoding="utf-8")
+
+def get_project_state(project_id: str) -> dict:
+    import json
+    from pathlib import Path
+
+    fp = Path("projects") / project_id / "state.json"
+    if not fp.exists():
+        return {}
+    try:
+        return json.loads(fp.read_text(encoding="utf-8"))
+    except Exception:
+        return {}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+from api.app.core.artifact_contracts import build_artifact
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -49,5 +50,8 @@ def run(inp: Dict[str, Any], reused_pattern: str | None = None) -> FeatureResult
         type="markdown",
         content=content,
         files=[],
-        meta={"pattern_used": reused_pattern or "default_game_v1"},
+        meta={
+            "pattern_used": reused_pattern or "default_game_v1",
+            "artifact": build_artifact("game", content),
+        },
     )

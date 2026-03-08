@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
 
-FeatureName = Literal["text", "code", "game", "image", "shorts"]
+FeatureName = Literal["text", "code", "game", "image", "shorts", "docs", "animation"]
 
 
 class ExecuteIn(BaseModel):
@@ -64,3 +64,29 @@ class ExecuteOut(BaseModel):
     metrics: Dict[str, Any] = Field(default_factory=dict)
     repaired: bool = False
     reused_pattern: Optional[str] = None
+
+
+class ProjectRunIn(BaseModel):
+    prompt: str = Field(..., min_length=1)
+    goal: Optional[str] = None
+    constraints: Dict[str, Any] = Field(default_factory=dict)
+    mode: str = Field(default="project")
+    project_id: Optional[str] = None
+    improve: bool = True
+    stages: List[str] = Field(default_factory=list)
+
+
+class ProjectStageOut(BaseModel):
+    stage: str
+    route: RouteOut
+    plan: PlanOut
+    result: FeatureResult
+    quality: QualityOut
+
+
+class ProjectRunOut(BaseModel):
+    ok: bool
+    project_id: str
+    stages: List[ProjectStageOut] = Field(default_factory=list)
+    final_summary: str
+    metrics: Dict[str, Any] = Field(default_factory=dict)

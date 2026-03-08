@@ -39,13 +39,21 @@ from pathlib import Path
 img = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 sho = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
 
-assert img["ok"] is True, img
 assert img["route"]["feature"] == "image", img
-assert "Image Generation Package" in img["result"]["content"], img
+assert img["result"]["feature"] == "image", img
+ia = img["result"]["meta"]["artifact"]
+assert ia["artifact_type"] == "image_prompt_package", img
+assert ia["artifact_data"].get("style"), img
+assert ia["artifact_data"].get("composition"), img
+assert ia["next_stage_inputs"].get("visual_summary"), img
 
-assert sho["ok"] is True, sho
 assert sho["route"]["feature"] == "shorts", sho
-assert "Shorts Blueprint" in sho["result"]["content"], sho
+assert sho["result"]["feature"] == "shorts", sho
+sa = sho["result"]["meta"]["artifact"]
+assert sa["artifact_type"] == "shorts_blueprint", sho
+assert len(sa["artifact_data"].get("beats", [])) >= 3, sho
+assert len(sa["artifact_data"].get("edit_notes", [])) >= 2, sho
+assert sa["next_stage_inputs"].get("hook_and_beats"), sho
 
 print("SMOKE_MULTIMODAL_CORE_OK", img["route"]["feature"], sho["route"]["feature"])
 PY
