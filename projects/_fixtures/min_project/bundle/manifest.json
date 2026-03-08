@@ -1,5 +1,17 @@
 {
   "project_id": "p_fixture_min",
+  "final_output": {
+    "project_id": "p_fixture_min",
+    "deliverables": [
+      {
+        "stage": "docs",
+        "feature": "docs",
+        "artifact_type": "docs_blueprint",
+        "summary": "Fixture minimal docs blueprint."
+      }
+    ],
+    "final_summary": "Fixture project completed with 1 deliverable."
+  },
   "deliverable_count": 1,
   "stages": [
     {
