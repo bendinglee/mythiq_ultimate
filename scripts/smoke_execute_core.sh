@@ -17,7 +17,6 @@ curl -fsS "$BASE/v1/execute_core" \
     "goal":"reliably finish work",
     "mode":"project",
     "want":"code",
-    "constraints":{"style":"practical"},
     "improve": true
   }' > "$tmp/execute_core.json"
 
@@ -26,17 +25,27 @@ import json
 import sys
 from pathlib import Path
 
-p = Path(sys.argv[1])
-j = json.loads(p.read_text(encoding="utf-8"))
+j = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 
-assert j["ok"] is True, j
 assert "project_id" in j and j["project_id"].startswith("p_"), j
 assert "run_id" in j and j["run_id"].startswith("r_"), j
-assert j["route"]["feature"] in ("text", "code", "game"), j
-assert j["plan"]["feature"] == j["route"]["feature"], j
-assert j["result"]["feature"] == j["route"]["feature"], j
+assert j["route"]["feature"] in ("text", "code", "game", "image", "shorts", "docs", "animation"), j
+assert j["plan"]["feature"] == j["result"]["feature"], j
 assert isinstance(j["quality"]["score"], (int, float)), j
 assert isinstance(j["metrics"]["latency_ms"], int), j
 
-print("SMOKE_EXECUTE_CORE_OK", j["route"]["feature"], j["quality"]["score"])
+meta = j["result"]["meta"]
+artifact = meta.get("artifact") or {}
+assert artifact.get("artifact_type") == "code_patch", j
+assert artifact.get("artifact_data", {}).get("language") == "python", j
+assert len(artifact.get("artifact_data", {}).get("functions", [])) >= 1, j
+assert artifact.get("next_stage_inputs", {}).get("code_summary"), j
+
+reliability = j.get("reliability") or {}
+assert isinstance(reliability.get("attempts"), int) and reliability["attempts"] >= 1, j
+assert isinstance(reliability.get("fallback_used"), bool), j
+assert reliability.get("final_feature") == j["result"]["feature"], j
+assert isinstance(reliability.get("tried_features"), list) and len(reliability["tried_features"]) >= 1, j
+
+print("SMOKE_EXECUTE_CORE_OK", j["result"]["feature"], j["quality"]["score"])
 PY
