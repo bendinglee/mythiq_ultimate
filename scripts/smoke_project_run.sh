@@ -30,6 +30,7 @@ assert j["project_id"].startswith("p_"), j
 assert isinstance(j["stages"], list) and len(j["stages"]) >= 1, j
 assert isinstance(j["final_summary"], str) and j["final_summary"], j
 assert int(j["metrics"]["deliverable_count"]) >= 1, j
+assert int(j["metrics"]["emitted_file_count"]) >= 2, j
 
 first = j["stages"][0]
 assert first["stage"] == "docs", j
@@ -42,6 +43,7 @@ for stage in j["stages"]:
     assert artifact.get("artifact_type"), stage
     assert artifact.get("artifact_data"), stage
     assert artifact.get("next_stage_inputs"), stage
+    assert isinstance(stage["result"].get("files"), list) and len(stage["result"]["files"]) >= 2, stage
 
 print("SMOKE_PROJECT_RUN_OK", len(j["stages"]), first["route"]["feature"])
 PY

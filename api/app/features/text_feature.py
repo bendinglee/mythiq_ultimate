@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+from api.app.core.artifact_contracts import build_artifact
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -18,18 +19,21 @@ def plan(inp: Dict[str, Any]) -> PlanOut:
 
 def run(inp: Dict[str, Any], reused_pattern: str | None = None) -> FeatureResult:
     prompt = inp["prompt"].strip()
-    goal = (inp.get("goal") or "").strip()
+    goal = (inp.get("goal") or "respond clearly").strip()
 
-    content = (
-        f"# Mythiq Text Output\n\n"
-        f"Goal: {goal or 'general completion'}\n\n"
-        f"Prompt:\n{prompt}\n\n"
-        f"Result:\n"
-        f"- clear answer structure\n"
-        f"- action-oriented response\n"
-        f"- reusable output scaffold\n"
-        f"- pattern: {reused_pattern or 'default_text_v1'}\n"
-    )
+    content = f"""# Mythiq Text Output
+
+Goal: {goal}
+
+Prompt:
+{prompt}
+
+Result:
+- clear answer structure
+- action-oriented response
+- reusable output scaffold
+- pattern: {reused_pattern or "default_text_v1"}
+"""
 
     return FeatureResult(
         ok=True,
@@ -37,5 +41,8 @@ def run(inp: Dict[str, Any], reused_pattern: str | None = None) -> FeatureResult
         type="markdown",
         content=content,
         files=[],
-        meta={"pattern_used": reused_pattern or "default_text_v1"},
+        meta={
+            "pattern_used": reused_pattern or "default_text_v1",
+            "artifact": build_artifact("text", content),
+        },
     )
