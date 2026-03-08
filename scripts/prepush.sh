@@ -46,6 +46,10 @@ if test -x "$ROOT/scripts/smoke_project_zip.sh"; then
   "$ROOT/scripts/smoke_project_zip.sh" >/dev/null
 fi
 
+if test -x "$ROOT/scripts/smoke_builder_plan.sh"; then
+  "$ROOT/scripts/smoke_builder_plan.sh" >/dev/null
+fi
+
 if test -x "$ROOT/scripts/smoke_manifest_regression.sh"; then
   "$ROOT/scripts/smoke_manifest_regression.sh" >/dev/null
 fi
