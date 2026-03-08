@@ -6,6 +6,7 @@ from api.app.routes_project_status import router as project_status_router
 from api.app.routes_project_approve import router as project_approve_router
 from api.app.routes_export import router as export_router
 from api.app.routes_export_zip import router as export_zip_router
+from api.app.routes_builder import router as builder_router
 from api.app.core.models import ExecuteIn as CoreExecuteIn
 from api.app.core.router import route_execute
 from api.app.core.executor import make_plan, execute_feature, repair_result
@@ -1869,6 +1870,7 @@ def rag_query(inp: RagQueryIn):
     return RagQueryOut(query=inp.query, top_k=inp.top_k, hits=out_hits)
 
 app.include_router(execute_router)
+app.include_router(builder_router)
 app.include_router(project_router)
 app.include_router(project_resume_router)
 app.include_router(project_status_router)
