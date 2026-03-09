@@ -71,3 +71,8 @@ fi
 
 test -x "$ROOT/scripts/smoke_library_budget.sh"
 "$ROOT/scripts/smoke_library_budget.sh"
+
+if test -x "$ROOT/scripts/smoke_builder_scaffold.sh"; then
+  "$ROOT/scripts/smoke_builder_scaffold.sh" >/dev/null
+fi
+

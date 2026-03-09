@@ -31,7 +31,7 @@ assert j["builder_target"] in ("game", "app", "media", "automation"), j
 assert isinstance(j["project_spec"], dict), j
 assert isinstance(j["project_spec"].get("stages"), list) and len(j["project_spec"]["stages"]) >= 2, j
 assert isinstance(j["plan"], dict), j
-assert j["plan"]["feature"] == "builder", j
+assert j["plan"]["feature"] == j["builder_target"], j
 assert isinstance(j["blueprint"], str) and "Builder Engine Blueprint" in j["blueprint"], j
 
 print("SMOKE_BUILDER_PLAN_OK", j["builder_target"], len(j["project_spec"]["stages"]))

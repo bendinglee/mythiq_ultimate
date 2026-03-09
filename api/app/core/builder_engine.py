@@ -66,7 +66,7 @@ def build_builder_plan(spec: Dict[str, Any]) -> Dict[str, Any]:
     stages: List[str] = [str(x) for x in spec["stages"]]
 
     return {
-        "feature": "builder",
+        "feature": str(spec["target"]),
         "steps": [
             {"id": "b1", "action": "infer_project_type", "meta": {"target": str(spec["target"])}},
             {"id": "b2", "action": "build_project_spec", "meta": {"title": str(spec["title"])}},
