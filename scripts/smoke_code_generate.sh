@@ -31,11 +31,18 @@ assert isinstance(j.get("type"), str) and j["type"], j
 content = j.get("content", "")
 files = j.get("files", [])
 
-assert content or files, j
+assert content, j
+assert isinstance(files, list) and len(files) >= 3, j
 
-if content:
-    text = content.lower()
-    assert "def solve" in text or "print(" in text or "hello" in text, j
+for fp in files:
+    assert Path(fp).exists(), fp
 
-print("SMOKE_CODE_GENERATE_OK", j.get("feature"), j.get("type"))
+text = content.lower()
+assert "def solve" in text or "print(" in text or "hello" in text, j
+
+bundle = (j.get("meta") or {}).get("bundle") or {}
+assert bundle.get("root"), j
+assert int(bundle.get("file_count", 0)) >= 3, j
+
+print("SMOKE_CODE_GENERATE_OK", j.get("feature"), j.get("type"), len(files))
 PY

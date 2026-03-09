@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from api.app.core.artifact_contracts import build_artifact
+from api.app.core.code_emitters import emit_code_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -50,14 +51,17 @@ if __name__ == "__main__":
     print(solve())
 '''
 
+    bundle = emit_code_bundle(task, content)
+
     return FeatureResult(
         ok=True,
         feature="code",
         type="python",
         content=content,
-        files=[],
+        files=bundle["files"],
         meta={
             "pattern_used": reused_pattern or "default_code_v2",
             "artifact": build_artifact("code", content),
+            "bundle": bundle,
         },
     )
