@@ -23,6 +23,7 @@ from api.app.routes_image import router as image_router
 from api.app.routes_game_generate import router as game_generate_router
 from api.app.routes_animation import router as animation_router
 from api.app.routes_text import router as text_router
+from api.app.routes_features import router as features_router
 
 import threading
 
@@ -1892,3 +1893,4 @@ app.include_router(image_router)
 app.include_router(game_generate_router)
 app.include_router(animation_router)
 app.include_router(text_router)
+app.include_router(features_router)

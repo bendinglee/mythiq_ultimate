@@ -84,3 +84,4 @@ test -x "$ROOT/scripts/smoke_image_generate.sh" && "$ROOT/scripts/smoke_image_ge
 test -x "$ROOT/scripts/smoke_game_generate.sh" && "$ROOT/scripts/smoke_game_generate.sh"
 test -x "$ROOT/scripts/smoke_animation_generate.sh" && "$ROOT/scripts/smoke_animation_generate.sh"
 test -x "$ROOT/scripts/smoke_text_generate.sh" && "$ROOT/scripts/smoke_text_generate.sh"
+test -x "$ROOT/scripts/smoke_features_registry.sh" && "$ROOT/scripts/smoke_features_registry.sh"
