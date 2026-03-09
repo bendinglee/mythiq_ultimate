@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from api.app.core.artifact_contracts import build_artifact
+from api.app.core.game_emitters import emit_game_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -44,14 +45,17 @@ def run(inp: Dict[str, Any], reused_pattern: str | None = None) -> FeatureResult
 - pattern: {reused_pattern or "default_game_v1"}
 """
 
+    bundle = emit_game_bundle(prompt, content)
+
     return FeatureResult(
         ok=True,
         feature="game",
         type="markdown",
         content=content,
-        files=[],
+        files=bundle["files"],
         meta={
             "pattern_used": reused_pattern or "default_game_v1",
             "artifact": build_artifact("game", content),
+            "bundle": bundle,
         },
     )
