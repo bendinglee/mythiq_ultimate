@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from api.app.core.artifact_contracts import build_artifact
+from api.app.core.animation_emitters import emit_animation_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -47,14 +48,17 @@ def run(inp: Dict[str, Any], reused_pattern: str | None = None) -> FeatureResult
 {reused_pattern or "default_animation_v1"}
 """
 
+    bundle = emit_animation_bundle(prompt, content)
+
     return FeatureResult(
         ok=True,
         feature="animation",
         type="markdown",
         content=content,
-        files=[],
+        files=bundle["files"],
         meta={
             "pattern_used": reused_pattern or "default_animation_v1",
             "artifact": build_artifact("animation", content),
+            "bundle": bundle,
         },
     )

@@ -21,6 +21,7 @@ from . import db as mythiq_db
 import zipfile
 from api.app.routes_image import router as image_router
 from api.app.routes_game_generate import router as game_generate_router
+from api.app.routes_animation import router as animation_router
 
 import threading
 
@@ -1888,3 +1889,4 @@ app.include_router(export_zip_router)
 
 app.include_router(image_router)
 app.include_router(game_generate_router)
+app.include_router(animation_router)
