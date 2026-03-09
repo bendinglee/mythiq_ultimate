@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from api.app.core.artifact_contracts import build_artifact
+from api.app.core.docs_emitters import emit_docs_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -44,14 +45,17 @@ def run(inp: Dict[str, Any], reused_pattern: str | None = None) -> FeatureResult
 - pattern: {reused_pattern or "default_docs_v1"}
 """
 
+    bundle = emit_docs_bundle(prompt, content, goal)
+
     return FeatureResult(
         ok=True,
         feature="docs",
         type="markdown",
         content=content,
-        files=[],
+        files=bundle["files"],
         meta={
             "pattern_used": reused_pattern or "default_docs_v1",
             "artifact": build_artifact("docs", content),
+            "bundle": bundle,
         },
     )
