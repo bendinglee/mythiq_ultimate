@@ -26,6 +26,7 @@ import os
 import sqlite3
 from pathlib import Path
 from api.app.utils.game_tools import enforce_canonical_game_tools
+from api.app.routes_code import router as code_router
 
 import time
 START_TS = time.time()
@@ -1870,6 +1871,7 @@ def rag_query(inp: RagQueryIn):
     return RagQueryOut(query=inp.query, top_k=inp.top_k, hits=out_hits)
 
 app.include_router(execute_router)
+app.include_router(code_router)
 app.include_router(builder_router)
 app.include_router(project_router)
 app.include_router(project_resume_router)

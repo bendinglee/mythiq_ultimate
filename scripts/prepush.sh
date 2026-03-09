@@ -76,3 +76,5 @@ if test -x "$ROOT/scripts/smoke_builder_scaffold.sh"; then
   "$ROOT/scripts/smoke_builder_scaffold.sh" >/dev/null
 fi
 
+
+test -x "$ROOT/scripts/smoke_code_generate.sh" && "$ROOT/scripts/smoke_code_generate.sh"
