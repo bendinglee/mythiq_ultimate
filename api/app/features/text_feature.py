@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from api.app.core.artifact_contracts import build_artifact
+from api.app.core.text_emitters import emit_text_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -35,14 +36,17 @@ Result:
 - pattern: {reused_pattern or "default_text_v1"}
 """
 
+    bundle = emit_text_bundle(prompt, content)
+
     return FeatureResult(
         ok=True,
         feature="text",
         type="markdown",
         content=content,
-        files=[],
+        files=bundle["files"],
         meta={
             "pattern_used": reused_pattern or "default_text_v1",
             "artifact": build_artifact("text", content),
+            "bundle": bundle,
         },
     )
