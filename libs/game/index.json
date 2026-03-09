@@ -4,14 +4,27 @@
     {
       "id": "topdown_shooter_v1",
       "feature": "game",
-      "tags": ["shooter", "topdown", "waves", "coins", "juice"],
+      "tags": [
+        "shooter",
+        "topdown",
+        "waves",
+        "coins",
+        "juice"
+      ],
       "prompt_template": "Build a top-down shooter. Player moves with WASD/Arrows, shoot with Space. Spawn enemy waves. Coins drop. Add screen shake + hit flash. Add score + combo."
     },
     {
-      "id": "endless_runner_v1",
+      "id": "survivor_arena_v1",
       "feature": "game",
-      "tags": ["runner", "endless", "platform", "coins"],
-      "prompt_template": "Build an endless runner. Auto-run, jump with Space. Spawn obstacles. Coins. Difficulty ramps. Score UI."
+      "tags": [
+        "survivor",
+        "arena",
+        "waves",
+        "enemies",
+        "dodging",
+        "juice"
+      ],
+      "prompt_template": "Build a survivor arena game. Player moves with WASD/Arrows, auto-fires or directional attacks, enemy waves intensify over time, pickups and upgrades appear, and the game includes score, hit flash, screen shake, and a clean HUD."
     }
   ]
 }
