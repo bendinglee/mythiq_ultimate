@@ -80,3 +80,4 @@ fi
 test -x "$ROOT/scripts/smoke_code_generate.sh" && "$ROOT/scripts/smoke_code_generate.sh"
 test -x "$ROOT/scripts/smoke_docs_generate.sh" && "$ROOT/scripts/smoke_docs_generate.sh"
 test -x "$ROOT/scripts/smoke_shorts_generate.sh" && "$ROOT/scripts/smoke_shorts_generate.sh"
+test -x "$ROOT/scripts/smoke_image_generate.sh" && "$ROOT/scripts/smoke_image_generate.sh"

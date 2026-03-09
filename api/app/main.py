@@ -19,6 +19,7 @@ import time
 from datetime import datetime, timezone
 from . import db as mythiq_db
 import zipfile
+from api.app.routes_image import router as image_router
 
 import threading
 
@@ -1883,3 +1884,5 @@ app.include_router(project_status_router)
 app.include_router(project_approve_router)
 app.include_router(export_router)
 app.include_router(export_zip_router)
+
+app.include_router(image_router)
