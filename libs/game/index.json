@@ -1,0 +1,17 @@
+{
+  "version": "0.1.0",
+  "patterns": [
+    {
+      "id": "topdown_shooter_v1",
+      "feature": "game",
+      "tags": ["shooter", "topdown", "waves", "coins", "juice"],
+      "prompt_template": "Build a top-down shooter. Player moves with WASD/Arrows, shoot with Space. Spawn enemy waves. Coins drop. Add screen shake + hit flash. Add score + combo."
+    },
+    {
+      "id": "endless_runner_v1",
+      "feature": "game",
+      "tags": ["runner", "endless", "platform", "coins"],
+      "prompt_template": "Build an endless runner. Auto-run, jump with Space. Spawn obstacles. Coins. Difficulty ramps. Score UI."
+    }
+  ]
+}
