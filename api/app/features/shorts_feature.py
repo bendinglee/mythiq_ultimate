@@ -1,10 +1,12 @@
 from __future__ import annotations
+from pathlib import Path
 
 from typing import Any, Dict, List
 
 from api.app.core.artifact_contracts import build_artifact
 from api.app.core.shorts_emitters import emit_shorts_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
+from api.app.core.artifact_store import register_artifact
 
 
 def _pick_topic(payload: Dict[str, Any]) -> str:
@@ -79,6 +81,14 @@ def run(payload: Dict[str, Any], reused_pattern: str | None = None) -> FeatureRe
 """
 
     bundle = emit_shorts_bundle(topic, content)
+
+    register_artifact(
+        artifact_id=Path(bundle["root"]).parts[1] if len(Path(bundle["root"]).parts) > 1 else Path(bundle["root"]).name,
+        feature="shorts",
+        root=bundle["root"],
+        files=bundle["files"],
+        meta={"pattern_used": reused_pattern or "default"},
+    )
 
     return FeatureResult(
         ok=True,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from api.app.core.artifact_store import list_registered
 from typing import Any, Dict, List
 
 PROJECTS = Path("projects")
@@ -43,12 +44,35 @@ def list_artifacts(limit: int = 100) -> Dict[str, Any]:
     PROJECTS.mkdir(parents=True, exist_ok=True)
 
     rows: List[Dict[str, Any]] = []
+    seen = set()
+
+    for row in list_registered(limit=limit * 3):
+        aid = row.get("artifact_id")
+        root = row.get("root")
+        if not aid or not root or aid in seen:
+            continue
+        seen.add(aid)
+        rows.append(
+            {
+                "artifact_id": aid,
+                "feature": row.get("feature") or "unknown",
+                "root": root,
+                "files": row.get("files") or [],
+                "meta": row.get("meta") or {},
+                "source": "registry",
+            }
+        )
+        if len(rows) >= limit:
+            return {"ok": True, "count": len(rows), "artifacts": rows}
+
     for root in sorted(PROJECTS.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True):
         if not root.is_dir():
             continue
         if root.name.startswith("."):
             continue
         if root.name == "_exports":
+            continue
+        if root.name in seen:
             continue
 
         files = _all_files(root)
@@ -58,6 +82,7 @@ def list_artifacts(limit: int = 100) -> Dict[str, Any]:
                 "feature": _detect_feature(root, files),
                 "root": str(root),
                 "files": files,
+                "source": "scan",
             }
         )
 

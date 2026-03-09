@@ -1,10 +1,12 @@
 from __future__ import annotations
+from pathlib import Path
 
 from typing import Any, Dict
 
 from api.app.core.artifact_contracts import build_artifact
 from api.app.core.code_emitters import emit_code_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
+from api.app.core.artifact_store import register_artifact
 
 
 def plan(inp: Dict[str, Any]) -> PlanOut:
@@ -52,6 +54,14 @@ if __name__ == "__main__":
 '''
 
     bundle = emit_code_bundle(task, content)
+
+    register_artifact(
+        artifact_id=Path(bundle["root"]).parts[1] if len(Path(bundle["root"]).parts) > 1 else Path(bundle["root"]).name,
+        feature="code",
+        root=bundle["root"],
+        files=bundle["files"],
+        meta={"pattern_used": reused_pattern or "default"},
+    )
 
     return FeatureResult(
         ok=True,
