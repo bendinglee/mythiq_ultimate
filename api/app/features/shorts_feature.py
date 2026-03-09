@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from api.app.core.artifact_contracts import build_artifact
+from api.app.core.shorts_emitters import emit_shorts_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
 
 
@@ -77,14 +78,17 @@ def run(payload: Dict[str, Any], reused_pattern: str | None = None) -> FeatureRe
 {reused_pattern or "default_shorts_v2"}
 """
 
+    bundle = emit_shorts_bundle(topic, content)
+
     return FeatureResult(
         ok=True,
         feature="shorts",
         type="markdown",
         content=content,
-        files=[],
+        files=bundle["files"],
         meta={
             "pattern_used": reused_pattern or "default_shorts_v2",
             "artifact": build_artifact("shorts", content),
+            "bundle": bundle,
         },
     )

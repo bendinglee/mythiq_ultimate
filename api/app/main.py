@@ -28,6 +28,7 @@ from pathlib import Path
 from api.app.utils.game_tools import enforce_canonical_game_tools
 from api.app.routes_code import router as code_router
 from api.app.routes_docs import router as docs_router
+from api.app.routes_shorts import router as shorts_router
 
 import time
 START_TS = time.time()
@@ -1874,6 +1875,7 @@ def rag_query(inp: RagQueryIn):
 app.include_router(execute_router)
 app.include_router(code_router)
 app.include_router(docs_router)
+app.include_router(shorts_router)
 app.include_router(builder_router)
 app.include_router(project_router)
 app.include_router(project_resume_router)

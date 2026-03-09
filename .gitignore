@@ -79,3 +79,6 @@ projects/*/state.json
 # keep explicit fixtures only
 !projects/_fixtures/
 !projects/_fixtures/**
+projects/code_*/
+projects/docs_*/
+projects/shorts_*/
