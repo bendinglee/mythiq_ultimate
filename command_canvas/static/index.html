@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mythiq Command Canvas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>Mythiq</h1>
+      <p class="muted">Validation + Critic Build</p>
+
+      <div class="panel">
+        <h3>Modes</h3>
+        <div class="chips">
+          <button data-mode="auto" class="chip active">Auto</button>
+          <button data-mode="text" class="chip">Text</button>
+          <button data-mode="docs" class="chip">Docs</button>
+          <button data-mode="code" class="chip">Code</button>
+          <button data-mode="game" class="chip">Game</button>
+          <button data-mode="shorts" class="chip">Shorts</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>History</h3>
+        <div id="history" class="artifact-list"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="composer">
+        <label class="label">Prompt</label>
+        <textarea id="prompt" placeholder="Ask Mythiq to build anything..."></textarea>
+
+        <div class="row2">
+          <div>
+            <label class="label">Source URL</label>
+            <input id="sourceUrl" type="text" placeholder="https://youtube.com/...">
+          </div>
+          <div>
+            <label class="label">Clip Count</label>
+            <input id="targetCount" type="number" min="1" max="10" value="5">
+          </div>
+        </div>
+
+        <label class="label">Transcript / Notes</label>
+        <textarea id="transcript" placeholder="Paste transcript or notes for better shorts output..."></textarea>
+
+        <div class="actions">
+          <button id="runBtn">Run</button>
+          <button id="rerunBtn">Rerun Last</button>
+          <span id="status" class="muted">idle</span>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="card">
+          <h2>Preview</h2>
+          <pre id="preview">No run yet.</pre>
+        </div>
+
+        <div class="card">
+          <h2>Run Summary</h2>
+          <pre id="summary">No run yet.</pre>
+        </div>
+
+        <div class="card">
+          <h2>Artifacts</h2>
+          <div id="artifacts" class="artifact-list"></div>
+        </div>
+
+        <div class="card">
+          <h2>Critic Report</h2>
+          <pre id="critic">No run yet.</pre>
+        </div>
+
+        <div class="card">
+          <h2>Logs</h2>
+          <pre id="logs">No run yet.</pre>
+        </div>
+
+        <div class="card">
+          <h2>Feedback</h2>
+          <div class="row2">
+            <button id="likeBtn" class="small">Like</button>
+            <button id="dislikeBtn" class="small alt">Dislike</button>
+          </div>
+          <textarea id="feedbackNotes" placeholder="What should improve?"></textarea>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
