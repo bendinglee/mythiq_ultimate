@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+.venv/bin/python - <<'PY'
+import json
+import shutil
+from pathlib import Path
+
+from api.app.shorts.service import (
+    job_dir,
+    render_vertical_clip,
+    write_json,
+    write_srt_for_clip,
+    rank_moments_from_transcript,
+    write_shorts_brief,
+)
+
+fixture_mp4 = Path("tests/fixtures/shorts/sample.mp4")
+fixture_tx = Path("tests/fixtures/shorts/sample_transcript.json")
+
+tx = json.loads(fixture_tx.read_text())
+job = job_dir("shorts_real_test")
+src = job / "source" / "original.mp4"
+ranked = job / "moments" / "ranked.json"
+srt = job / "captions" / "short_01.srt"
+out = job / "renders" / "short_01.mp4"
+
+src.parent.mkdir(parents=True, exist_ok=True)
+shutil.copy2(fixture_mp4, src)
+
+moments = rank_moments_from_transcript(tx, 12.0, 3)
+assert moments, "no ranked moments"
+
+must = ["reason", "matched_keywords", "speech_density", "segment_count", "transcript_preview", "hook_line", "viral_title", "thumbnail_text", "editor_notes", "hashtags"]
+for k in must:
+    assert k in moments[0], f"missing {k}"
+
+write_json(ranked, moments)
+
+m = moments[0]
+render_vertical_clip(src, out, float(m["start_sec"]), float(m["end_sec"]))
+count = write_srt_for_clip(tx, float(m["start_sec"]), float(m["end_sec"]), srt)
+brief_json, brief_md = write_shorts_brief(job, "fixture://sample", moments)
+
+assert out.exists(), "short mp4 missing"
+assert ranked.exists(), "ranked.json missing"
+assert srt.exists(), "srt missing"
+assert brief_json.exists(), "brief json missing"
+assert brief_md.exists(), "brief md missing"
+assert count >= 1, "subtitle count invalid"
+
+print("SMOKE_SHORTS_REAL_PACKAGE_OK")
+PY

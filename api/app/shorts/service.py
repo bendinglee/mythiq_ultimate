@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import time
+import textwrap
 import uuid
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,11 @@ from typing import Any
 from faster_whisper import WhisperModel
 
 ROOT = Path(__file__).resolve().parents[3]
+SHORTS_DEFAULT_TARGET_COUNT = 10
+SHORTS_MIN_CLIP_SEC = 18.0
+SHORTS_MAX_CLIP_SEC = 35.0
+SHORTS_STEP_SEC = 10.0
+
 ART = ROOT / "artifacts"
 
 
@@ -153,68 +159,202 @@ def transcribe_audio(wav: Path) -> dict[str, Any]:
     }
 
 
+
+
+def clamp_clip_window(start_sec: float, end_sec: float, total_duration: float) -> tuple[float, float]:
+    start_sec = max(0.0, float(start_sec))
+    end_sec = min(float(total_duration), float(end_sec))
+    dur = end_sec - start_sec
+
+    if dur < SHORTS_MIN_CLIP_SEC:
+        pad = (SHORTS_MIN_CLIP_SEC - dur) / 2.0
+        start_sec = max(0.0, start_sec - pad)
+        end_sec = min(float(total_duration), end_sec + pad)
+
+    dur = end_sec - start_sec
+    if dur > SHORTS_MAX_CLIP_SEC:
+        center = (start_sec + end_sec) / 2.0
+        half = SHORTS_MAX_CLIP_SEC / 2.0
+        start_sec = max(0.0, center - half)
+        end_sec = min(float(total_duration), center + half)
+
+        if end_sec - start_sec < SHORTS_MAX_CLIP_SEC:
+            if start_sec <= 0.0:
+                end_sec = min(float(total_duration), SHORTS_MAX_CLIP_SEC)
+            elif end_sec >= float(total_duration):
+                start_sec = max(0.0, float(total_duration) - SHORTS_MAX_CLIP_SEC)
+
+    return round(start_sec, 2), round(end_sec, 2)
+
+
+def _clean_title_text(text: str) -> str:
+    text = re.sub(r"\s+", " ", (text or "").strip())
+    text = text.strip(" -—:,.")
+    return text
+
+
+def build_hook_line(preview: str) -> str:
+    preview = _clean_title_text(preview)
+    if not preview:
+        return "You won’t believe what happens next."
+    preview = preview[:120]
+    starters = [
+        "This is where everything changes:",
+        "This is the moment it gets serious:",
+        "This is the part nobody expects:",
+        "This is where it all breaks open:",
+        "This is why people keep watching:",
+    ]
+    idx = sum(ord(c) for c in preview) % len(starters)
+    return f"{starters[idx]} {preview}"[:140]
+
+
+def build_viral_title(preview: str, matched_keywords: list[str]) -> str:
+    preview = _clean_title_text(preview)
+    if not preview:
+        return "Top viral moment"
+    base = preview[:65].strip()
+    if matched_keywords:
+        lead = matched_keywords[0].replace("_", " ").title()
+        return f"{lead} Moment: {base}"[:90]
+    return f"{base}"[:90]
+
+
+def build_thumbnail_text(preview: str, matched_keywords: list[str]) -> str:
+    if matched_keywords:
+        return " | ".join([kw.upper() for kw in matched_keywords[:3]])[:36]
+    words = [w for w in re.split(r"\s+", preview) if w]
+    return " ".join(w.upper() for w in words[:3])[:36]
+
+
+def build_editor_notes(item: dict) -> list[str]:
+    notes = []
+    if item.get("hook_score", 0) >= 0.8:
+        notes.append("Open immediately on the first spoken hook.")
+    if item.get("speech_density", 0) >= 0.7:
+        notes.append("Use fast captions because speech density is high.")
+    if item.get("matched_keywords"):
+        notes.append("Emphasize keyword words in captions and cover text.")
+    notes.append("Add punch-in zooms on key nouns and reactions.")
+    notes.append("Keep subtitles large, centered low, and phone-readable.")
+    return notes[:4]
+
+
+def build_hashtags(item: dict) -> list[str]:
+    tags = ["#shorts", "#viral", "#story"]
+    for kw in item.get("matched_keywords", [])[:4]:
+        clean = re.sub(r"[^a-zA-Z0-9]", "", kw)
+        if clean:
+            tags.append("#" + clean.lower())
+    out = []
+    for t in tags:
+        if t not in out:
+            out.append(t)
+    return out[:6]
+
+
+def write_shorts_brief(job: Path, source_url: str, moments: list[dict]) -> tuple[Path, Path]:
+    brief_json = job / "brief" / "shorts_package.json"
+    brief_md = job / "brief" / "shorts_package.md"
+    brief_json.parent.mkdir(parents=True, exist_ok=True)
+
+    payload = {
+        "source_url": source_url,
+        "clip_count": len(moments),
+        "clips": moments,
+    }
+    brief_json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    lines = [
+        "# Shorts Package",
+        "",
+        f"- Source: {source_url}",
+        f"- Clip count: {len(moments)}",
+        "",
+    ]
+    for item in moments:
+        lines.extend([
+            f"## Clip {item.get('rank', '?')}",
+            f"- Time: {item['start_sec']}s → {item['end_sec']}s",
+            f"- Score: {item.get('clip_score')}",
+            f"- Hook: {item.get('hook_line', '')}",
+            f"- Title: {item.get('viral_title', '')}",
+            f"- Thumbnail text: {item.get('thumbnail_text', '')}",
+            f"- Reason: {item.get('reason', '')}",
+            f"- Hashtags: {' '.join(item.get('hashtags', []))}",
+            "- Notes:",
+        ])
+        for note in item.get("editor_notes", []):
+            lines.append(f"  - {note}")
+        lines.extend([
+            "",
+            "Preview:",
+            "",
+            textwrap.indent(item.get("transcript_preview", ""), "> "),
+            "",
+        ])
+
+    brief_md.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+    return brief_json, brief_md
+
 def rank_moments_from_transcript(
     transcript_data: dict[str, Any],
     total_duration: float,
     target_count: int,
 ) -> list[dict[str, Any]]:
-    segments = transcript_data.get("segments", []) or []
-    if not segments or total_duration <= 0:
+    segments = transcript_data.get("segments") or []
+    if not segments:
         return []
 
-    window_size = 30.0
-    step = 15.0
-    start = 0.0
     windows: list[dict[str, Any]] = []
+    step = SHORTS_STEP_SEC
+    start = 0.0
 
-    keyword_bank = [
-        "big", "danger", "fight", "war", "largest", "strong", "trapped",
-        "lost", "found", "chased", "crazy", "insane", "secret", "legendary",
-        "attack", "final", "escape", "run", "king", "death"
-    ]
-
-    while start < total_duration:
-        end = min(total_duration, start + window_size)
+    while start < max(float(total_duration) - SHORTS_MIN_CLIP_SEC, 0.0) + step:
+        end = min(float(total_duration), start + SHORTS_MAX_CLIP_SEC)
         chunk = []
-
         for seg in segments:
             seg_start = float(seg.get("start", 0.0))
-            seg_end = float(seg.get("end", 0.0))
-            if seg_end > start and seg_start < end:
-                chunk.append(seg)
-
-        if not chunk:
-            start += step
-            continue
+            seg_end = float(seg.get("end", seg_start))
+            if seg_end <= start or seg_start >= end:
+                continue
+            chunk.append(seg)
 
         text = " ".join((seg.get("text") or "").strip() for seg in chunk).strip()
-        words = [w for w in re.split(r"\s+", text) if w]
-
-        speech_seconds = sum(
-            max(0.0, min(end, float(seg.get("end", 0.0))) - max(start, float(seg.get("start", 0.0))))
-            for seg in chunk
-        )
-        speech_density = speech_seconds / max(1.0, end - start)
-
-        strong = 0
-        lower_text = text.lower()
-        matched_keywords = []
-        for kw in keyword_bank:
-            if kw in lower_text:
-                strong += 1
-                matched_keywords.append(kw)
-
-        hook_score = min(1.0, strong / 3.0)
-        clarity_score = min(1.0, len(words) / 80.0)
-        density_score = min(1.0, speech_density)
-
-        score = (
-            0.45 * hook_score +
-            0.30 * density_score +
-            0.25 * clarity_score
-        )
-
         if text:
+            lower_text = text.lower()
+            words = [w for w in re.split(r"\s+", text) if w]
+            duration = max(1.0, end - start)
+
+            keyword_bank = [
+                "big", "danger", "fight", "war", "largest", "strong", "trapped",
+                "lost", "found", "chased", "crazy", "insane", "secret", "legendary",
+                "attack", "final", "escape", "run", "king", "death", "minecraft",
+                "server", "world", "betrayal", "destroyed", "civilization", "revenge"
+            ]
+            matched_keywords = [kw for kw in keyword_bank if kw in lower_text][:8]
+
+            hook_markers = [
+                "this is", "oh my god", "what", "how", "why", "run", "lost",
+                "largest", "biggest", "crazy", "insane", "secret", "legendary",
+                "attack", "final", "trapped", "escape", "found"
+            ]
+            hook_hits = sum(1 for h in hook_markers if h in lower_text)
+            hook_score = min(1.0, 0.18 * hook_hits + 0.10 * len(matched_keywords))
+
+            density_score = min(1.0, len(words) / max(20.0, duration * 2.7))
+
+            unique_words = len(set(w.lower().strip(".,!?\"'()[]{}") for w in words if w.strip()))
+            clarity_score = min(1.0, unique_words / max(12.0, len(words) * 0.55))
+
+            score = (
+                0.45 * hook_score +
+                0.30 * density_score +
+                0.25 * clarity_score
+            )
+
+            clip_start, clip_end = clamp_clip_window(start, end, float(total_duration))
+
             reason_parts = []
             if hook_score >= 0.8:
                 reason_parts.append("strong hook words")
@@ -225,19 +365,26 @@ def rank_moments_from_transcript(
             if matched_keywords:
                 reason_parts.append("matched high-interest keywords")
 
-            windows.append({
-                "start_sec": round(start, 2),
-                "end_sec": round(end, 2),
+            preview = text[:220]
+            item = {
+                "start_sec": clip_start,
+                "end_sec": clip_end,
                 "hook_score": round(hook_score, 3),
                 "payoff_score": round(clarity_score, 3),
                 "clip_score": round(score, 3),
                 "speech_density": round(density_score, 3),
                 "segment_count": len(chunk),
                 "matched_keywords": matched_keywords[:8],
-                "transcript_preview": text[:220],
+                "transcript_preview": preview,
                 "reason": ", ".join(reason_parts) if reason_parts else "general transcript strength",
                 "title": (text[:80] + "...") if len(text) > 80 else text,
-            })
+            }
+            item["hook_line"] = build_hook_line(preview)
+            item["viral_title"] = build_viral_title(preview, item["matched_keywords"])
+            item["thumbnail_text"] = build_thumbnail_text(preview, item["matched_keywords"])
+            item["editor_notes"] = build_editor_notes(item)
+            item["hashtags"] = build_hashtags(item)
+            windows.append(item)
 
         start += step
 
@@ -260,6 +407,7 @@ def rank_moments_from_transcript(
         item["rank"] = i
 
     return picked
+
 
 
 def render_vertical_clip(src: Path, dst: Path, start: float, end: float) -> None:
@@ -365,7 +513,7 @@ def burn_subtitles(src_mp4: Path, src_srt: Path, out_mp4: Path) -> bool:
     return True
 
 
-def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
+def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUNT) -> dict[str, Any]:
     job = job_dir("shorts")
     jid = job.name
 
@@ -404,11 +552,14 @@ def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
         ranked_cache.write_text(json.dumps(moments, indent=2), encoding="utf-8")
 
     write_json(ranked, moments)
+    brief_json, brief_md = write_shorts_brief(job, source_url, moments)
 
     artifacts = [
         {"kind": "source_video", "path": str(src.relative_to(ROOT))},
         {"kind": "transcript", "path": str(transcript.relative_to(ROOT))},
         {"kind": "moments", "path": str(ranked.relative_to(ROOT))},
+        {"kind": "shorts_brief_json", "path": str(brief_json.relative_to(ROOT))},
+        {"kind": "shorts_brief_md", "path": str(brief_md.relative_to(ROOT))},
     ]
 
     clips_generated = 0
