@@ -300,6 +300,145 @@ def build_hashtags(item: dict) -> list[str]:
 
 
 
+
+
+PACKAGING_VARIANTS = 3
+
+def _clean_words(text: str) -> list[str]:
+    import re as _re
+    return [w for w in _re.findall(r"[a-z0-9']+", (text or "").lower()) if len(w) >= 3]
+
+def _uniq_keep(seq: list[str]) -> list[str]:
+    seen = set()
+    out = []
+    for x in seq:
+        k = (x or "").strip().lower()
+        if not k or k in seen:
+            continue
+        seen.add(k)
+        out.append((x or "").strip())
+    return out
+
+def classify_story_role(item: dict[str, Any]) -> str:
+    txt = " ".join([
+        str(item.get("hook_line", "")),
+        str(item.get("reason", "")),
+        str(item.get("transcript_preview", "")),
+    ]).lower()
+
+    if any(k in txt for k in ["twist", "betray", "betrayal", "reveal", "suddenly", "plot twist"]):
+        return "twist"
+    if any(k in txt for k in ["payoff", "won", "win", "finally", "clutch", "last second", "survived"]):
+        return "payoff"
+    if any(k in txt for k in ["danger", "panic", "chase", "raid", "fight", "escape", "chaos"]):
+        return "tension"
+    return "setup"
+
+def build_backstory_context(item: dict[str, Any], prompt: str) -> str:
+    preview = str(item.get("transcript_preview", "")).strip()
+    matched = [str(x).strip() for x in item.get("matched_keywords", []) if str(x).strip()]
+    prompt_words = extract_prompt_keywords(prompt) if "extract_prompt_keywords" in globals() else _clean_words(prompt)[:7]
+
+    parts = []
+    if prompt_words:
+        parts.append("Prompt focus: " + ", ".join(prompt_words[:5]))
+    if matched:
+        parts.append("Clip focus: " + ", ".join(matched[:5]))
+    if preview:
+        parts.append("Context: " + preview[:180])
+    return " | ".join(parts)[:420]
+
+def build_hook_variants(item: dict[str, Any], prompt: str) -> list[str]:
+    preview = str(item.get("transcript_preview", "")).strip()
+    role = classify_story_role(item)
+    kws = [str(x).strip() for x in item.get("matched_keywords", []) if str(x).strip()]
+    focus = ", ".join(kws[:3]) if kws else "this moment"
+
+    variants = [
+        f"You think this is normal until {focus} changes everything.",
+        f"This {role} is the part nobody sees coming.",
+        f"Watch what happens right when {focus} kicks in.",
+        f"This is where the whole story flips.",
+        f"The backstory makes this hit even harder: {preview[:70]}".strip(),
+    ]
+    return _uniq_keep([v[:110] for v in variants])[:PACKAGING_VARIANTS]
+
+def build_title_variants(item: dict[str, Any], prompt: str) -> list[str]:
+    role = classify_story_role(item)
+    kws = [str(x).strip() for x in item.get("matched_keywords", []) if str(x).strip()]
+    preview = str(item.get("transcript_preview", "")).strip()
+    focus = kws[0] if kws else "moment"
+
+    variants = [
+        f"The {focus.title()} Twist Nobody Expected",
+        f"This {role.title()} Changed Everything",
+        f"What Happened Next Was Actually Wild",
+        f"The Part That Made Everyone Keep Watching",
+        f"{focus.title()} Went Too Far Here",
+        f"This Backstory Makes The Clip Hit Harder",
+    ]
+
+    if prompt:
+        pkw = extract_prompt_keywords(prompt) if "extract_prompt_keywords" in globals() else _clean_words(prompt)[:7]
+        if pkw:
+            variants.insert(0, f"{pkw[0].title()} Story With A {role.title()} Twist")
+
+    if preview:
+        variants.append(preview[:58].rstrip(" .!?"))
+
+    return _uniq_keep([v[:70] for v in variants])[:PACKAGING_VARIANTS]
+
+def build_thumbnail_variants(item: dict[str, Any], prompt: str) -> list[str]:
+    kws = [str(x).strip().upper() for x in item.get("matched_keywords", []) if str(x).strip()]
+    role = classify_story_role(item)
+
+    base = []
+    if kws:
+        base.extend(kws[:3])
+
+    role_map = {
+        "setup": ["WAIT FOR IT", "IT STARTS HERE", "NO ONE KNEW"],
+        "tension": ["OH NO", "THIS GOT BAD", "PURE CHAOS"],
+        "twist": ["PLOT TWIST", "NAH WHAT", "NO WAY"],
+        "payoff": ["CLUTCH", "HE DID WHAT", "FINAL REVEAL"],
+    }
+    base.extend(role_map.get(role, ["BIG MOMENT"]))
+
+    if prompt:
+        pkw = extract_prompt_keywords(prompt) if "extract_prompt_keywords" in globals() else _clean_words(prompt)[:7]
+        if pkw:
+            base.append(pkw[0].upper())
+
+    cleaned = []
+    for x in base:
+        x = " ".join(str(x).split())
+        if not x:
+            continue
+        cleaned.append(x[:18])
+
+    return _uniq_keep(cleaned)[:PACKAGING_VARIANTS]
+
+def add_packaging_variants(moments: list[dict[str, Any]], prompt: str) -> list[dict[str, Any]]:
+    out = []
+    for rank, item in enumerate(moments, start=1):
+        m = dict(item)
+        m["rank"] = int(m.get("rank", rank))
+        m["story_role"] = classify_story_role(m)
+        m["backstory_context"] = build_backstory_context(m, prompt)
+        m["hook_variants"] = build_hook_variants(m, prompt)
+        m["title_variants"] = build_title_variants(m, prompt)
+        m["thumbnail_variants"] = build_thumbnail_variants(m, prompt)
+
+        if not m.get("hook_line") and m["hook_variants"]:
+            m["hook_line"] = m["hook_variants"][0]
+        if m["title_variants"]:
+            m["viral_title"] = m["title_variants"][0]
+        if m["thumbnail_variants"]:
+            m["thumbnail_text"] = m["thumbnail_variants"][0]
+
+        out.append(m)
+    return out
+
 def write_clip_metadata(job: Path, item: dict[str, Any]) -> Path:
     rank = int(item.get("rank", 0))
     out = job / "clips_meta" / f"clip_{rank:02d}.json"
@@ -792,6 +931,7 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
         ranked_cache.parent.mkdir(parents=True, exist_ok=True)
         ranked_cache.write_text(json.dumps(moments, indent=2), encoding="utf-8")
 
+    moments = add_packaging_variants(moments, prompt)
     write_json(ranked, moments)
     brief_json, brief_md = write_shorts_brief(job, source_url, moments)
 
