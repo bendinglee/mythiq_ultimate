@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import time
@@ -151,44 +152,53 @@ def rank_moments_from_transcript(
     target_count: int,
 ) -> list[dict[str, Any]]:
     segments = transcript_data.get("segments", []) or []
-    if not segments:
+    if not segments or total_duration <= 0:
         return []
 
-    strong_words = {
-        "biggest", "crazy", "chaos", "immediately", "finally", "reveal",
-        "legendary", "secret", "found", "suddenly", "insane", "won", "lost",
-        "danger", "battle", "king", "order", "adventure", "strong", "weak",
-    }
-
-    windows: list[dict[str, Any]] = []
-    win = 30.0
-    step = 10.0
+    window_size = 30.0
+    step = 15.0
     start = 0.0
+    windows: list[dict[str, Any]] = []
 
-    while start + 8.0 <= total_duration:
-        end = min(total_duration, start + win)
-        texts: list[str] = []
-        speech_secs = 0.0
+    keyword_bank = [
+        "big", "danger", "fight", "war", "largest", "strong", "trapped",
+        "lost", "found", "chased", "crazy", "insane", "secret", "legendary",
+        "attack", "final", "escape", "run", "king", "death"
+    ]
+
+    while start < total_duration:
+        end = min(total_duration, start + window_size)
+        chunk = []
 
         for seg in segments:
-            a = float(seg.get("start", 0.0))
-            b = float(seg.get("end", 0.0))
-            if b <= start or a >= end:
-                continue
-            texts.append(str(seg.get("text", "")))
-            speech_secs += max(0.0, min(b, end) - max(a, start))
+            seg_start = float(seg.get("start", 0.0))
+            seg_end = float(seg.get("end", 0.0))
+            if seg_end > start and seg_start < end:
+                chunk.append(seg)
 
-        text = " ".join(texts).strip()
-        if not text:
+        if not chunk:
             start += step
             continue
 
-        words = [w.strip(".,!?():;[]{}'\"").lower() for w in text.split()]
-        strong = sum(1 for w in words if w in strong_words)
+        text = " ".join((seg.get("text") or "").strip() for seg in chunk).strip()
+        words = [w for w in re.split(r"\s+", text) if w]
 
-        speech_density = speech_secs / max(1.0, end - start)
-        hook_score = min(1.0, strong / 4.0)
-        clarity_score = min(1.0, len(words) / 90.0)
+        speech_seconds = sum(
+            max(0.0, min(end, float(seg.get("end", 0.0))) - max(start, float(seg.get("start", 0.0))))
+            for seg in chunk
+        )
+        speech_density = speech_seconds / max(1.0, end - start)
+
+        strong = 0
+        lower_text = text.lower()
+        matched_keywords = []
+        for kw in keyword_bank:
+            if kw in lower_text:
+                strong += 1
+                matched_keywords.append(kw)
+
+        hook_score = min(1.0, strong / 3.0)
+        clarity_score = min(1.0, len(words) / 80.0)
         density_score = min(1.0, speech_density)
 
         score = (
@@ -197,14 +207,30 @@ def rank_moments_from_transcript(
             0.25 * clarity_score
         )
 
-        windows.append({
-            "start_sec": round(start, 2),
-            "end_sec": round(end, 2),
-            "hook_score": round(hook_score, 3),
-            "payoff_score": round(clarity_score, 3),
-            "clip_score": round(score, 3),
-            "title": (text[:120] + "...") if len(text) > 120 else text,
-        })
+        if text:
+            reason_parts = []
+            if hook_score >= 0.8:
+                reason_parts.append("strong hook words")
+            if density_score >= 0.7:
+                reason_parts.append("dense speech")
+            if clarity_score >= 0.7:
+                reason_parts.append("clear spoken content")
+            if matched_keywords:
+                reason_parts.append("matched high-interest keywords")
+
+            windows.append({
+                "start_sec": round(start, 2),
+                "end_sec": round(end, 2),
+                "hook_score": round(hook_score, 3),
+                "payoff_score": round(clarity_score, 3),
+                "clip_score": round(score, 3),
+                "speech_density": round(density_score, 3),
+                "segment_count": len(chunk),
+                "matched_keywords": matched_keywords[:8],
+                "transcript_preview": text[:220],
+                "reason": ", ".join(reason_parts) if reason_parts else "general transcript strength",
+                "title": (text[:80] + "...") if len(text) > 80 else text,
+            })
 
         start += step
 
@@ -214,10 +240,7 @@ def rank_moments_from_transcript(
     for cand in windows:
         overlaps = False
         for chosen in picked:
-            if not (
-                cand["end_sec"] <= chosen["start_sec"] or
-                cand["start_sec"] >= chosen["end_sec"]
-            ):
+            if not (cand["end_sec"] <= chosen["start_sec"] or cand["start_sec"] >= chosen["end_sec"]):
                 overlaps = True
                 break
         if overlaps:

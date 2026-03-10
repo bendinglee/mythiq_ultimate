@@ -31,6 +31,11 @@ shutil.copy2(fixture_mp4, src)
 
 moments = rank_moments_from_transcript(tx, 12.0, 1)
 assert moments, "no ranked moments"
+assert "reason" in moments[0], "reason missing"
+assert "matched_keywords" in moments[0], "matched_keywords missing"
+assert "speech_density" in moments[0], "speech_density missing"
+assert "segment_count" in moments[0], "segment_count missing"
+assert "transcript_preview" in moments[0], "transcript_preview missing"
 write_json(ranked, moments)
 
 m = moments[0]
