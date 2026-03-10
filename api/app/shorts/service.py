@@ -375,7 +375,6 @@ def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
     ranked = job / "moments" / "ranked.json"
 
     src = download_source(source_url, src_placeholder)
-    extract_audio(src, wav)
     total_duration = probe_duration(src)
 
     transcript_cache = cached_transcript_path(source_url)
@@ -388,6 +387,7 @@ def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
         transcript_data = json.loads(transcript_cache.read_text(encoding="utf-8"))
         cache_hit_transcript = True
     else:
+        extract_audio(src, wav)
         transcript_data = transcribe_audio(wav)
         transcript_data["source_duration_sec"] = total_duration
         transcript_cache.parent.mkdir(parents=True, exist_ok=True)
@@ -421,7 +421,15 @@ def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
         srt = job / "captions" / f"short_{i:02d}.srt"
         out_captioned = job / "renders" / f"short_{i:02d}.captioned.mp4"
 
-        render_vertical_clip(src, out, clip_start, clip_end)
+        clip_cache = cached_clip_path(source_url, clip_start, clip_end)
+        if clip_cache.exists():
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_bytes(clip_cache.read_bytes())
+        else:
+            render_vertical_clip(src, out, clip_start, clip_end)
+            clip_cache.parent.mkdir(parents=True, exist_ok=True)
+            clip_cache.write_bytes(out.read_bytes())
+
         subtitle_count = write_srt_for_clip(transcript_data, clip_start, clip_end, srt)
 
         artifacts.append({"kind": "short_video", "path": str(out.relative_to(ROOT))})
@@ -454,7 +462,19 @@ def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
             "cache_hit_source": cached_source_path(source_url).exists(),
             "cache_hit_transcript": cache_hit_transcript,
             "cache_hit_rankings": cache_hit_rankings,
+            "cache_hit_audio_extract": not cache_hit_transcript,
+            "cache_clip_count": sum(
+                1 for m in moments
+                if cached_clip_path(source_url, float(m["start_sec"]), float(m["end_sec"])).exists()
+            ),
         },
         "critic_report": {},
         "logs": [],
     }
+
+
+def clip_cache_key(url: str, start_sec: float, end_sec: float) -> str:
+    return f"{url_key(url)}_{int(round(start_sec * 100))}_{int(round(end_sec * 100))}"
+
+def cached_clip_path(url: str, start_sec: float, end_sec: float) -> Path:
+    return cache_dir() / "clips" / f"{clip_cache_key(url, start_sec, end_sec)}.mp4"
