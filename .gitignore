@@ -87,3 +87,8 @@ projects/animation_*/
 projects/text_*/
 projects/_meta/
 projects/image_*/
+
+# mythiq generated runtime
+mythiq/generated/
+mythiq/out/
+mythiq/results/

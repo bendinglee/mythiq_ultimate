@@ -1,0 +1,9 @@
+{
+  "flow_id": "flow.video_to_shorts",
+  "source_type": "youtube_url",
+  "source_url": "https://youtu.be/La1zClF8jdY?si=yRFUe9taWKtJNe-Z",
+  "title": "I Joined the World's Largest Minecraft Server",
+  "niche": "Minecraft",
+  "target_count": 10,
+  "target_platforms": ["youtube_shorts", "tiktok", "instagram_reels"]
+}

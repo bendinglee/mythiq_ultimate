@@ -1,0 +1,28 @@
+{
+  "flow_id": "flow.video_to_shorts",
+  "name": "Video to Shorts Factory",
+  "goal": "Turn a long-form video or transcript into ranked short-form clips with hooks, titles, captions, and thumbnail concepts.",
+  "inputs": {
+    "source_type": ["youtube_url", "transcript_text", "local_text_file"],
+    "title": "string",
+    "niche": "string",
+    "target_count": "integer",
+    "target_platforms": ["youtube_shorts", "tiktok", "instagram_reels"]
+  },
+  "outputs": [
+    "ranked clip list",
+    "hook per clip",
+    "caption per clip",
+    "title per clip",
+    "thumbnail concept per clip",
+    "editing notes",
+    "publish pack json"
+  ],
+  "scoring": {
+    "hook_strength": 0.35,
+    "clarity": 0.20,
+    "payoff": 0.20,
+    "novelty": 0.15,
+    "retention_potential": 0.10
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "flow_id": "flow.game_pack_builder",
+  "theme": "football pack opening",
+  "engine": "phaser",
+  "style": "ultimate-team-inspired",
+  "mode": "offline_single_player"
+}
