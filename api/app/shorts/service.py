@@ -253,6 +253,34 @@ def build_hashtags(item: dict) -> list[str]:
     return out[:6]
 
 
+
+
+def write_clip_metadata(job: Path, item: dict[str, Any]) -> Path:
+    rank = int(item.get("rank", 0))
+    out = job / "clips_meta" / f"clip_{rank:02d}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(item, indent=2), encoding="utf-8")
+    return out
+
+def write_package_manifest(
+    job: Path,
+    source_url: str,
+    artifacts: list[dict[str, Any]],
+    metrics: dict[str, Any],
+) -> Path:
+    out = job / "brief" / "package_manifest.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": True,
+        "feature": "shorts",
+        "job_id": job.name,
+        "source_url": source_url,
+        "artifacts": artifacts,
+        "metrics": metrics,
+    }
+    out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return out
+
 def write_shorts_brief(job: Path, source_url: str, moments: list[dict]) -> tuple[Path, Path]:
     brief_json = job / "brief" / "shorts_package.json"
     brief_md = job / "brief" / "shorts_package.md"
@@ -586,6 +614,9 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
         artifacts.append({"kind": "short_video", "path": str(out.relative_to(ROOT))})
         artifacts.append({"kind": "subtitle", "path": str(srt.relative_to(ROOT))})
 
+        clip_meta = write_clip_metadata(job, m)
+        artifacts.append({"kind": "clip_metadata", "path": str(clip_meta.relative_to(ROOT))})
+
         if subtitle_count > 0:
             burned = burn_subtitles(out, srt, out_captioned)
             if burned and out_captioned.exists():
@@ -594,33 +625,34 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
 
         clips_generated += 1
 
+    metrics = {
+        "critique_score": 0.0,
+        "validation_passed": True,
+        "clips_generated": clips_generated,
+        "duration_sec": total_duration,
+        "transcript_segments": len(transcript_data.get("segments", [])),
+        "transcribe_elapsed_sec": transcript_data.get("transcribe_elapsed_sec"),
+        "subtitle_files": subtitle_files,
+        "caption_burn_available": subtitle_files > 0,
+        "cache_hit_source": cached_source_path(source_url).exists(),
+        "cache_hit_transcript": cache_hit_transcript,
+        "cache_hit_rankings": cache_hit_rankings,
+        "cache_hit_audio_extract": not cache_hit_transcript,
+        "cache_clip_count": sum(
+            1 for m in moments
+            if cached_clip_path(source_url, float(m["start_sec"]), float(m["end_sec"])).exists()
+        ),
+    }
+
+    manifest = write_package_manifest(job, source_url, artifacts, metrics)
+    artifacts.append({"kind": "package_manifest", "path": str(manifest.relative_to(ROOT))})
+
     return {
         "ok": True,
-        "job_id": jid,
         "feature": "shorts",
-        "status": "done",
-        "source": {"url": source_url},
+        "job_id": job.name,
         "artifacts": artifacts,
-        "metrics": {
-            "critique_score": 0.0,
-            "validation_passed": True,
-            "clips_generated": clips_generated,
-            "duration_sec": total_duration,
-            "transcript_segments": len(transcript_data.get("segments", [])),
-            "transcribe_elapsed_sec": transcript_data.get("transcribe_elapsed_sec"),
-            "subtitle_files": subtitle_files,
-            "caption_burn_available": subtitle_files > 0,
-            "cache_hit_source": cached_source_path(source_url).exists(),
-            "cache_hit_transcript": cache_hit_transcript,
-            "cache_hit_rankings": cache_hit_rankings,
-            "cache_hit_audio_extract": not cache_hit_transcript,
-            "cache_clip_count": sum(
-                1 for m in moments
-                if cached_clip_path(source_url, float(m["start_sec"]), float(m["end_sec"])).exists()
-            ),
-        },
-        "critic_report": {},
-        "logs": [],
+        "metrics": metrics,
     }
 
 
