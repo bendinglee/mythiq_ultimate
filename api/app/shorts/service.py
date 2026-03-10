@@ -15,6 +15,51 @@ from faster_whisper import WhisperModel
 
 ROOT = Path(__file__).resolve().parents[3]
 SHORTS_DEFAULT_TARGET_COUNT = 10
+
+
+PROMPT_TOP_K = 12
+
+def slugify_text(x: str) -> str:
+    x = (x or "").strip().lower()
+    x = re.sub(r"[^a-z0-9]+", "-", x)
+    return x.strip("-") or "general"
+
+def prompt_key(prompt: str) -> str:
+    return hashlib.sha1((prompt or "").encode("utf-8")).hexdigest()[:12]
+
+def extract_prompt_keywords(prompt: str, limit: int = PROMPT_TOP_K) -> list[str]:
+    text = (prompt or "").lower()
+    words = re.findall(r"[a-z0-9']+", text)
+    stop = {
+        "the","a","an","and","or","but","if","then","else","for","to","of","in","on","at","by",
+        "with","from","into","about","over","after","before","under","between","during","without",
+        "is","are","was","were","be","been","being","this","that","these","those","it","its","as",
+        "make","makes","making","turn","turns","into","long","short","shorts","video","videos",
+        "clip","clips","real","fully","working","good","best","quality","unique","prompt"
+    }
+    out = []
+    seen = set()
+    for w in words:
+        if len(w) < 3 or w in stop or w in seen:
+            continue
+        seen.add(w)
+        out.append(w)
+        if len(out) >= limit:
+            break
+    return out
+
+def prompt_bonus_score(text: str, prompt_keywords: list[str]) -> float:
+    if not prompt_keywords:
+        return 0.0
+    low = (text or "").lower()
+    hits = sum(1 for kw in prompt_keywords if kw in low)
+    return min(0.30, hits * 0.03)
+
+def ranked_cache_key(url: str, target_count: int, prompt: str) -> str:
+    return f"{url_key(url)}_{target_count}_{prompt_key(prompt)}"
+
+def cached_ranked_prompt_path(url: str, target_count: int, prompt: str) -> Path:
+    return cache_dir() / "ranked" / f"{ranked_cache_key(url, target_count, prompt)}.json"
 SHORTS_MIN_CLIP_SEC = 18.0
 SHORTS_MAX_CLIP_SEC = 35.0
 SHORTS_STEP_SEC = 10.0
@@ -262,6 +307,84 @@ def write_clip_metadata(job: Path, item: dict[str, Any]) -> Path:
     out.write_text(json.dumps(item, indent=2), encoding="utf-8")
     return out
 
+
+
+def zip_job_dir(job: Path) -> Path:
+    out = job / "exports" / f"{job.name}.zip"
+    out.parent.mkdir(parents=True, exist_ok=True)
+
+    import zipfile
+
+    with zipfile.ZipFile(out, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for path in sorted(job.rglob("*")):
+            if not path.is_file():
+                continue
+            if path == out:
+                continue
+            zf.write(path, arcname=str(path.relative_to(job)))
+
+    return out
+
+def render_thumbnail(src: Path, out: Path, t: float, text: str = "") -> bool:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    safe_t = max(0.0, float(t))
+
+    # pass 1: always try to create a plain thumbnail frame first
+    vf_plain = (
+        "scale=1080:1920:force_original_aspect_ratio=increase,"
+        "crop=1080:1920"
+    )
+    cmd_plain = [
+        "ffmpeg", "-y",
+        "-ss", f"{safe_t:.3f}",
+        "-i", str(src),
+        "-frames:v", "1",
+        "-vf", vf_plain,
+        str(out),
+    ]
+
+    try:
+        subprocess.run(cmd_plain, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        return False
+
+    if not out.exists():
+        return False
+
+    # pass 2: optional text overlay; never fail overall thumbnail creation
+    txt = (text or "").strip()
+    if not txt:
+        return True
+
+    safe = (
+        txt.replace("\\", "\\\\")
+           .replace(":", "\\:")
+           .replace("'", "\\'")
+           .replace("%", "\\%")
+    )
+
+    tmp = out.with_name(out.stem + ".tmp" + out.suffix)
+    vf_text = (
+        "drawbox=x=40:y=60:w=1000:h=180:color=black@0.45:t=fill,"
+        f"drawtext=text='{safe}':x=80:y=110:fontsize=72:fontcolor=white"
+    )
+    cmd_text = [
+        "ffmpeg", "-y",
+        "-i", str(out),
+        "-vf", vf_text,
+        str(tmp),
+    ]
+
+    try:
+        subprocess.run(cmd_text, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if tmp.exists():
+            tmp.replace(out)
+    except Exception:
+        if tmp.exists():
+            tmp.unlink(missing_ok=True)
+
+    return out.exists()
+
 def write_package_manifest(
     job: Path,
     source_url: str,
@@ -275,6 +398,7 @@ def write_package_manifest(
         "feature": "shorts",
         "job_id": job.name,
         "source_url": source_url,
+        "prompt": metrics.get("prompt", ""),
         "artifacts": artifacts,
         "metrics": metrics,
     }
@@ -541,20 +665,21 @@ def burn_subtitles(src_mp4: Path, src_srt: Path, out_mp4: Path) -> bool:
     return True
 
 
-def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUNT) -> dict[str, Any]:
+def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUNT, prompt: str = "") -> dict[str, Any]:
     job = job_dir("shorts")
     jid = job.name
 
     src_placeholder = job / "source" / "original"
     wav = job / "source" / "audio.wav"
     transcript = job / "transcript" / "transcript.json"
+    prompt_keywords = extract_prompt_keywords(prompt)
     ranked = job / "moments" / "ranked.json"
 
     src = download_source(source_url, src_placeholder)
     total_duration = probe_duration(src)
 
     transcript_cache = cached_transcript_path(source_url)
-    ranked_cache = cached_ranked_path(source_url, target_count)
+    ranked_cache = cached_ranked_prompt_path(source_url, target_count, prompt)
 
     cache_hit_transcript = False
     cache_hit_rankings = False
@@ -617,6 +742,11 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
         clip_meta = write_clip_metadata(job, m)
         artifacts.append({"kind": "clip_metadata", "path": str(clip_meta.relative_to(ROOT))})
 
+        thumb = job / "thumbnails" / f"clip_{i:02d}.png"
+        thumb_ok = render_thumbnail(src, thumb, clip_start + 0.5, str(m.get("thumbnail_text", "")))
+        if thumb_ok and thumb.exists():
+            artifacts.append({"kind": "thumbnail", "path": str(thumb.relative_to(ROOT))})
+
         if subtitle_count > 0:
             burned = burn_subtitles(out, srt, out_captioned)
             if burned and out_captioned.exists():
@@ -626,6 +756,8 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
         clips_generated += 1
 
     metrics = {
+        "prompt": prompt,
+        "prompt_keywords": prompt_keywords,
         "critique_score": 0.0,
         "validation_passed": True,
         "clips_generated": clips_generated,
@@ -646,6 +778,10 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
 
     manifest = write_package_manifest(job, source_url, artifacts, metrics)
     artifacts.append({"kind": "package_manifest", "path": str(manifest.relative_to(ROOT))})
+
+    package_zip = zip_job_dir(job)
+    if package_zip and package_zip.exists():
+        artifacts.append({"kind": "package_zip", "path": str(package_zip.relative_to(ROOT))})
 
     return {
         "ok": True,
