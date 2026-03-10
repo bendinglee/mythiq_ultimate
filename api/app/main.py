@@ -1,4 +1,5 @@
 from __future__ import annotations
+from api.app.routes_artifact_search import router as artifact_search_router
 from api.app.routes_execute import router as execute_router
 from api.app.routes_project import router as project_router
 from api.app.routes_project_resume import router as project_resume_router
@@ -1900,5 +1901,6 @@ app.include_router(text_router)
 app.include_router(features_router)
 app.include_router(generate_router)
 app.include_router(artifacts_router)
+app.include_router(artifact_search_router)
 app.include_router(artifact_detail_router)
 app.include_router(artifact_export_router)
