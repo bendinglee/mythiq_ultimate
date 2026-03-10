@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import json
-import math
 import os
-import random
 import re
 import subprocess
 import sys
@@ -19,32 +17,26 @@ DEFAULT_CREATORS = [x.strip() for x in os.environ.get(
     "Unstable,Parrot,Flame,Wemmbu,Spoke"
 ).split(",") if x.strip()]
 
-HOOKS = [
-    "This Went Completely Wrong",
-    "They Were NOT Ready For This",
-    "The Craziest Moment",
-    "This Escalated Fast",
-    "Nobody Expected This",
-    "The Funniest Moment",
-    "This Changed Everything",
-    "The Cleanest Play",
-    "This Was Actually Insane",
-    "The Wildest SMP Moment",
-]
-
-TAILS = [
-    "#shorts",
-    "| Unstable SMP #shorts",
-    "😳 #shorts",
-    "💀 #shorts",
-    "🔥 #shorts",
-    "😂 #shorts",
-]
-
 STOP = {
     "the","a","an","and","or","but","of","to","in","on","for","with","from","at","by",
-    "is","it","this","that","these","those","was","were","be","been","are","as"
+    "is","it","this","that","these","those","was","were","be","been","are","as","he",
+    "she","they","them","you","we","i","his","her","their","our","my","your"
 }
+
+STYLE_TEMPLATES = [
+    "{topic} 😂 #shorts",
+    "Do You Remember {topic}? 🥺 #shorts",
+    "{creator} {topic}.. 💀 | #shorts",
+    "They Got Scared From {topic} ☠️🔥 | {series} #shorts",
+    "The Guy That Died To {topic} | {series} #shorts",
+    "Most Underrated {series} Players",
+    "{creator} Almost Lost Because Of {topic} 😭 #shorts",
+    "{topic} Changed Everything 😳 | {series} #shorts",
+    "{creator} Was NOT Ready For {topic} 💀 #shorts",
+    "This {topic} Moment Was Insane 🔥 #shorts",
+]
+
+SERIES_DEFAULT = os.environ.get("MYTHIQ_SERIES_NAME", "Unstable SMP")
 
 def sh(cmd: list[str]) -> None:
     print("+", " ".join(cmd))
@@ -61,92 +53,13 @@ def url_to_local_path(url_or_path: str) -> Path:
     if s.startswith("/files/"):
         s = s[len("/files/"):]
     s = s.lstrip("/")
-    p = Path.cwd() / s
-    return p.resolve()
-
-def read_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return (Path.cwd() / s).resolve()
 
 def write_json(path: Path, obj: Any) -> None:
     path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 def safe_text(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "")).strip()
-
-def pick_creator(title: str, creators: list[str], idx: int) -> str:
-    t = title.lower()
-    for c in creators:
-        if c.lower() in t:
-            return c
-    return creators[idx % len(creators)] if creators else "Minecraft"
-
-def extract_keywords(title: str) -> list[str]:
-    words = re.findall(r"[A-Za-z][A-Za-z0-9']+", title)
-    out = []
-    for w in words:
-        wl = w.lower()
-        if wl not in STOP and len(w) >= 4:
-            out.append(w)
-    seen = set()
-    uniq = []
-    for w in out:
-        k = w.lower()
-        if k not in seen:
-            seen.add(k)
-            uniq.append(w)
-    return uniq[:4]
-
-def make_title(orig_title: str, creator: str, idx: int) -> str:
-    kws = extract_keywords(orig_title)
-    hook = HOOKS[idx % len(HOOKS)]
-    tail = TAILS[idx % len(TAILS)]
-
-    variants = []
-    if kws:
-        variants.append(f"{creator} {hook} With {' '.join(kws[:2])} {tail}")
-        variants.append(f"{creator} {' '.join(kws[:2])} {hook} {tail}")
-        variants.append(f"{' '.join(kws[:2])} Broke The SMP {tail}")
-    variants.append(f"{creator} {hook} {tail}")
-    variants.append(f"{hook} | {creator} {tail}")
-
-    cleaned = []
-    for v in variants:
-        v = safe_text(v)
-        v = re.sub(r"\s+\| \|", " |", v)
-        v = re.sub(r"\s{2,}", " ", v).strip()
-        if len(v) > 70:
-            v = v[:67].rstrip() + "..."
-        cleaned.append(v)
-
-    best = sorted(cleaned, key=lambda x: (
-        -int(40 <= len(x) <= 62),
-        -sum(int(c in x.lower()) for c in [creator.lower(), "smp", "minecraft", "shorts"]),
-        -len(extract_keywords(x)),
-        -len(x)
-    ))[0]
-    return best
-
-def make_caption(title: str, creator: str) -> str:
-    return safe_text(
-        f"{title}\n"
-        f"Fast-paced Minecraft short featuring {creator}. "
-        f"High-retention pacing, hard cuts, vertical format, clean replay value.\n"
-        f"#shorts #minecraft #{creator.lower()} #gaming #unstablesmp"
-    )
-
-def score_clip(idx: int, clip: dict[str, Any]) -> float:
-    t = safe_text(clip.get("title") or "")
-    score = 50.0
-    if any(x in t.lower() for x in ["craziest", "insane", "wrong", "funniest", "wildest"]):
-        score += 12
-    if any(x in t.lower() for x in ["unstable", "parrot", "flame", "wemmbu", "spoke"]):
-        score += 8
-    if any(x in t.lower() for x in ["smp", "minecraft"]):
-        score += 6
-    if 38 <= len(t) <= 62:
-        score += 10
-    score += max(0, 6 - abs((idx % 6) - 3))
-    return round(score, 2)
 
 def ffprobe_duration(path: Path) -> float:
     out = subprocess.check_output([
@@ -182,6 +95,144 @@ def build_fast_clip(src: Path, dst: Path, speed: float = 1.05, max_len: float = 
         str(dst),
     ])
 
+def pick_creator(text: str, creators: list[str], idx: int) -> str:
+    t = text.lower()
+    for c in creators:
+        if c.lower() in t:
+            return c
+    return creators[idx % len(creators)] if creators else "Minecraft"
+
+def normalize_topic(s: str) -> str:
+    s = safe_text(s)
+    s = re.sub(r'[#|]+', ' ', s)
+    s = re.sub(r'\b(shorts|trending|viral|minecraft|smp)\b', ' ', s, flags=re.I)
+    s = re.sub(r'[^A-Za-z0-9\' ]+', ' ', s)
+    s = re.sub(r'\s+', ' ', s).strip()
+    return s
+
+def keywords_from_text(text: str) -> list[str]:
+    words = re.findall(r"[A-Za-z][A-Za-z0-9']+", text)
+    out = []
+    for w in words:
+        wl = w.lower()
+        if wl not in STOP and len(w) >= 4:
+            out.append(w)
+    seen = set()
+    uniq = []
+    for w in out:
+        k = w.lower()
+        if k not in seen:
+            seen.add(k)
+            uniq.append(w)
+    return uniq
+
+def best_topic_for_clip(clip: dict[str, Any]) -> str:
+    candidates = []
+
+    for key in [
+        "title",
+        "hook",
+        "summary",
+        "caption",
+        "description",
+        "transcript",
+        "clip_title",
+        "scene_title"
+    ]:
+        v = clip.get(key)
+        if isinstance(v, str) and v.strip():
+            candidates.append(v.strip())
+
+    joined = " ".join(candidates)
+    kws = keywords_from_text(joined)
+
+    phrases = []
+    if len(kws) >= 2:
+        phrases.append(f"{kws[0]} {kws[1]}")
+    if len(kws) >= 3:
+        phrases.append(f"{kws[0]} {kws[1]} {kws[2]}")
+    if len(kws) >= 1:
+        phrases.append(kws[0])
+
+    for c in candidates:
+        n = normalize_topic(c)
+        if 4 <= len(n) <= 28:
+            phrases.append(n)
+
+    cleaned = []
+    seen = set()
+    for p in phrases:
+        p = normalize_topic(p)
+        if not p:
+            continue
+        if len(p) < 4:
+            continue
+        key = p.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(p)
+
+    if cleaned:
+        cleaned.sort(key=lambda x: (
+            -int(8 <= len(x) <= 24),
+            -len(x.split()),
+            -len(x)
+        ))
+        return cleaned[0]
+
+    return "Minecraft Moment"
+
+def make_title_for_clip(clip: dict[str, Any], creator: str, idx: int, series: str) -> str:
+    topic = best_topic_for_clip(clip)
+
+    titles = []
+    for tmpl in STYLE_TEMPLATES:
+        t = tmpl.format(
+            topic=topic,
+            creator=creator,
+            series=series
+        )
+        t = safe_text(t)
+        t = re.sub(r"\s+\|\s+#shorts", " | #shorts", t)
+        t = re.sub(r"\s{2,}", " ", t).strip()
+        if len(t) > 68:
+            t = t[:68].rstrip() + "..."
+        titles.append(t)
+
+    def score_title(t: str) -> tuple:
+        tl = t.lower()
+        return (
+            -int(38 <= len(t) <= 62),
+            -int(topic.lower() in tl),
+            -int(creator.lower() in tl),
+            -int(series.lower() in tl),
+            -int("#shorts" in tl),
+            abs(len(t) - 52),
+        )
+
+    titles.sort(key=score_title)
+    return titles[0]
+
+def make_caption(title: str, creator: str) -> str:
+    return safe_text(
+        f"{title}\n"
+        f"Fast-paced Minecraft short featuring {creator}.\n"
+        f"#shorts #minecraft #{creator.lower()} #gaming #unstablesmp"
+    )
+
+def score_clip(title: str, topic: str, creator: str) -> float:
+    score = 50.0
+    if 38 <= len(title) <= 62:
+        score += 10
+    if creator.lower() in title.lower():
+        score += 8
+    if topic.lower() in title.lower():
+        score += 12
+    if "#shorts" in title.lower():
+        score += 4
+    return round(score, 2)
+
 def main() -> int:
     data = load_latest()
     if not data.get("ok"):
@@ -202,6 +253,7 @@ def main() -> int:
 
     ranking = []
     creators = DEFAULT_CREATORS[:]
+    series = SERIES_DEFAULT
 
     for i, clip in enumerate(clips, start=1):
         source_url = clip.get("captioned_video_url") or clip.get("video_url")
@@ -213,32 +265,42 @@ def main() -> int:
             print(f"missing source clip: {src}", file=sys.stderr)
             continue
 
-        orig_title = safe_text(clip.get("title") or f"Clip {i}")
-        creator = pick_creator(orig_title, creators, i - 1)
-        new_title = make_title(orig_title, creator, i - 1)
+        raw_text = " ".join([
+            str(clip.get("title") or ""),
+            str(clip.get("hook") or ""),
+            str(clip.get("summary") or ""),
+            str(clip.get("caption") or ""),
+            str(clip.get("description") or ""),
+            str(clip.get("transcript") or ""),
+        ]).strip()
+
+        creator = pick_creator(raw_text, creators, i - 1)
+        topic = best_topic_for_clip(clip)
+        new_title = make_title_for_clip(clip, creator, i - 1, series)
         caption = make_caption(new_title, creator)
-        score = score_clip(i, {"title": new_title})
+        score = score_clip(new_title, topic, creator)
 
         dst = renders / f"short_{i:02d}_fast.mp4"
         build_fast_clip(src, dst, speed=1.05, max_len=18.0)
 
         (meta / f"short_{i:02d}.title.txt").write_text(new_title + "\n", encoding="utf-8")
         (meta / f"short_{i:02d}.caption.txt").write_text(caption + "\n", encoding="utf-8")
+        (meta / f"short_{i:02d}.topic.txt").write_text(topic + "\n", encoding="utf-8")
         (meta / f"short_{i:02d}.hashtags.txt").write_text(
             f"#shorts\n#minecraft\n#{creator.lower()}\n#gaming\n#unstablesmp\n",
             encoding="utf-8"
         )
 
-        row = {
+        ranking.append({
             "index": i,
             "creator": creator,
-            "source_title": orig_title,
+            "topic": topic,
+            "source_title": clip.get("title"),
             "title": new_title,
             "score": score,
             "source_video": str(src),
             "fast_video": str(dst),
-        }
-        ranking.append(row)
+        })
 
     ranking.sort(key=lambda x: x["score"], reverse=True)
     write_json(meta / "ranking.json", ranking)
@@ -247,6 +309,7 @@ def main() -> int:
     for r in ranking:
         md.append(f"## {r['index']:02d} — {r['title']}")
         md.append(f"- creator: {r['creator']}")
+        md.append(f"- topic: {r['topic']}")
         md.append(f"- score: {r['score']}")
         md.append(f"- fast_video: `{r['fast_video']}`")
         md.append("")
