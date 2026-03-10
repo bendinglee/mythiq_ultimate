@@ -65,6 +65,13 @@ def url_key(url: str) -> str:
     return hashlib.sha1(url.encode("utf-8")).hexdigest()[:16]
 
 
+
+def cached_transcript_path(url: str) -> Path:
+    return cache_dir() / f"{url_key(url)}.transcript.json"
+
+def cached_ranked_path(url: str, target_count: int) -> Path:
+    return cache_dir() / f"{url_key(url)}.ranked_{target_count}.json"
+
 def cached_source_path(url: str) -> Path:
     return cache_dir() / f"{url_key(url)}.mp4"
 
@@ -371,11 +378,31 @@ def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
     extract_audio(src, wav)
     total_duration = probe_duration(src)
 
-    transcript_data = transcribe_audio(wav)
-    transcript_data["source_duration_sec"] = total_duration
+    transcript_cache = cached_transcript_path(source_url)
+    ranked_cache = cached_ranked_path(source_url, target_count)
+
+    cache_hit_transcript = False
+    cache_hit_rankings = False
+
+    if transcript_cache.exists():
+        transcript_data = json.loads(transcript_cache.read_text(encoding="utf-8"))
+        cache_hit_transcript = True
+    else:
+        transcript_data = transcribe_audio(wav)
+        transcript_data["source_duration_sec"] = total_duration
+        transcript_cache.parent.mkdir(parents=True, exist_ok=True)
+        transcript_cache.write_text(json.dumps(transcript_data, indent=2), encoding="utf-8")
+
     write_json(transcript, transcript_data)
 
-    moments = rank_moments_from_transcript(transcript_data, total_duration, target_count)
+    if ranked_cache.exists():
+        moments = json.loads(ranked_cache.read_text(encoding="utf-8"))
+        cache_hit_rankings = True
+    else:
+        moments = rank_moments_from_transcript(transcript_data, total_duration, target_count)
+        ranked_cache.parent.mkdir(parents=True, exist_ok=True)
+        ranked_cache.write_text(json.dumps(moments, indent=2), encoding="utf-8")
+
     write_json(ranked, moments)
 
     artifacts = [
@@ -424,6 +451,9 @@ def build_shorts(source_url: str, target_count: int = 5) -> dict[str, Any]:
             "transcribe_elapsed_sec": transcript_data.get("transcribe_elapsed_sec"),
             "subtitle_files": subtitle_files,
             "caption_burn_available": subtitle_files > 0,
+            "cache_hit_source": cached_source_path(source_url).exists(),
+            "cache_hit_transcript": cache_hit_transcript,
+            "cache_hit_rankings": cache_hit_rankings,
         },
         "critic_report": {},
         "logs": [],
