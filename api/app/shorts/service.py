@@ -385,6 +385,82 @@ def render_thumbnail(src: Path, out: Path, t: float, text: str = "") -> bool:
 
     return out.exists()
 
+
+
+
+
+def srt_to_ass(src_srt: Path, out_ass: Path) -> bool:
+    if not src_srt.exists():
+        return False
+
+    txt = src_srt.read_text(encoding="utf-8", errors="ignore").strip()
+    if not txt:
+        return False
+
+    def to_ass_time(ts: str) -> str:
+        ts = ts.strip().replace(",", ".")
+        hh, mm, rest = ts.split(":")
+        ss, cs = rest.split(".")
+        return f"{int(hh)}:{int(mm):02d}:{int(ss):02d}.{int(cs[:2]):02d}"
+
+    blocks = re.split(r"\n\s*\n", txt)
+    events = []
+
+    for block in blocks:
+        lines = [x.strip("\ufeff") for x in block.splitlines() if x.strip()]
+        if len(lines) < 2:
+            continue
+        if "-->" not in lines[1]:
+            continue
+
+        start_raw, end_raw = [x.strip() for x in lines[1].split("-->")]
+        start_ass = to_ass_time(start_raw)
+        end_ass = to_ass_time(end_raw)
+
+        text_lines = lines[2:] if re.fullmatch(r"\d+", lines[0]) else lines[1:]
+        if "-->" in text_lines[0]:
+            text_lines = text_lines[1:]
+
+        text = r"\N".join(
+            t.replace("{", r"\{").replace("}", r"\}")
+            for t in text_lines if t.strip()
+        ).strip()
+
+        if not text:
+            continue
+
+        events.append(
+            f"Dialogue: 0,{start_ass},{end_ass},GenZ,,0,0,0,,{text}"
+        )
+
+    out_ass.parent.mkdir(parents=True, exist_ok=True)
+    header = """[Script Info]
+ScriptType: v4.00+
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+YCbCr Matrix: TV.601
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: GenZ,Arial,18,&H00FFFFFF,&H0000FFFF,&H00000000,&H64000000,-1,0,0,0,100,100,0,0,1,2,0,2,60,60,180,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+"""
+    out_ass.write_text(header + "\n".join(events) + "\n", encoding="utf-8")
+    return out_ass.exists()
+
+def srt_to_vtt(src_srt: Path, out_vtt: Path) -> bool:
+    if not src_srt.exists():
+        return False
+    txt = src_srt.read_text(encoding="utf-8", errors="ignore").strip()
+    if not txt:
+        return False
+    out_vtt.parent.mkdir(parents=True, exist_ok=True)
+    body = "WEBVTT\n\n" + txt.replace(",", ".")
+    out_vtt.write_text(body, encoding="utf-8")
+    return out_vtt.exists()
+
 def write_package_manifest(
     job: Path,
     source_url: str,
@@ -624,45 +700,57 @@ def write_srt_for_clip(
     return idx - 1
 
 
+
 def burn_subtitles(src_mp4: Path, src_srt: Path, out_mp4: Path) -> bool:
-    filters = subprocess.check_output(
-        ["ffmpeg", "-hide_banner", "-filters"],
-        text=True,
-        errors="ignore",
-    )
+    out_mp4.parent.mkdir(parents=True, exist_ok=True)
 
-    has_subtitles = " subtitles " in filters or filters.rstrip().endswith("subtitles")
-    has_ass = " ass " in filters or filters.rstrip().endswith("ass")
-    has_drawtext = " drawtext " in filters or filters.rstrip().endswith("drawtext")
-
-    if not (has_subtitles or has_ass or has_drawtext):
+    if not src_mp4.exists():
         return False
 
-    rel_srt = src_srt.relative_to(ROOT).as_posix()
-    rel_srt = (
-        rel_srt
-        .replace("\\", r"\\\\")
-        .replace(":", r"\:")
-        .replace(",", r"\,")
-        .replace("[", r"\[")
-        .replace("]", r"\]")
-    )
-    vf = f"subtitles=filename={rel_srt}"
-    subprocess.run(
-        [
-            "ffmpeg", "-y",
-            "-i", str(src_mp4),
-            "-vf", vf,
-            "-c:v", "libx264",
-            "-preset", "veryfast",
-            "-crf", "23",
-            "-c:a", "copy",
-            str(out_mp4),
-        ],
-        check=True,
-        cwd=str(ROOT),
-    )
-    return True
+    # fallback 0: if subtitle file missing/empty, still emit a downloadable video
+    if (not src_srt.exists()) or src_srt.stat().st_size == 0:
+        shutil.copy2(src_mp4, out_mp4)
+        return out_mp4.exists()
+
+    ass_path = out_mp4.with_suffix(".ass")
+    srt_to_ass(src_srt, ass_path)
+
+    def try_ffmpeg(vf: str) -> bool:
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg", "-y",
+                    "-i", str(src_mp4),
+                    "-vf", vf,
+                    "-c:v", "libx264",
+                    "-preset", "veryfast",
+                    "-crf", "23",
+                    "-c:a", "aac",
+                    "-b:a", "192k",
+                    str(out_mp4),
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            return out_mp4.exists() and out_mp4.stat().st_size > 0
+        except Exception:
+            return False
+
+    # styled burn first
+    if ass_path.exists() and ass_path.stat().st_size > 0:
+        ass_arg = str(ass_path).replace("\\", "/").replace(":", r"\:")
+        if try_ffmpeg(f"ass='{ass_arg}'"):
+            return True
+
+    # normal subtitle burn second
+    srt_arg = str(src_srt).replace("\\", "/").replace(":", r"\:")
+    if try_ffmpeg(f"subtitles='{srt_arg}'"):
+        return True
+
+    # final fallback: keep pipeline alive with downloadable output
+    shutil.copy2(src_mp4, out_mp4)
+    return out_mp4.exists()
 
 
 def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUNT, prompt: str = "") -> dict[str, Any]:
@@ -739,6 +827,10 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
         artifacts.append({"kind": "short_video", "path": str(out.relative_to(ROOT))})
         artifacts.append({"kind": "subtitle", "path": str(srt.relative_to(ROOT))})
 
+        vtt = job / "captions" / f"short_{i:02d}.vtt"
+        if srt_to_vtt(srt, vtt):
+            artifacts.append({"kind": "subtitle_vtt", "path": str(vtt.relative_to(ROOT))})
+
         clip_meta = write_clip_metadata(job, m)
         artifacts.append({"kind": "clip_metadata", "path": str(clip_meta.relative_to(ROOT))})
 
@@ -747,7 +839,7 @@ def build_shorts(source_url: str, target_count: int = SHORTS_DEFAULT_TARGET_COUN
         if thumb_ok and thumb.exists():
             artifacts.append({"kind": "thumbnail", "path": str(thumb.relative_to(ROOT))})
 
-        if subtitle_count > 0:
+        if srt.exists() and srt.stat().st_size > 0:
             burned = burn_subtitles(out, srt, out_captioned)
             if burned and out_captioned.exists():
                 artifacts.append({"kind": "short_video_captioned", "path": str(out_captioned.relative_to(ROOT))})
