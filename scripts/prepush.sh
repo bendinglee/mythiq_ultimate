@@ -89,3 +89,4 @@ test -x "$ROOT/scripts/smoke_generate_generic.sh" && "$ROOT/scripts/smoke_genera
 test -x "$ROOT/scripts/smoke_artifacts.sh" && "$ROOT/scripts/smoke_artifacts.sh"
 test -x "$ROOT/scripts/smoke_artifact_export.sh" && "$ROOT/scripts/smoke_artifact_export.sh"
 test -x "$ROOT/scripts/smoke_artifact_registry_backfill.sh" && "$ROOT/scripts/smoke_artifact_registry_backfill.sh"
+test -x "$ROOT/scripts/smoke_artifact_detail.sh" && "$ROOT/scripts/smoke_artifact_detail.sh"

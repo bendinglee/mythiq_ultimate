@@ -27,6 +27,7 @@ from api.app.routes_features import router as features_router
 from api.app.routes_generate import router as generate_router
 from api.app.routes_artifacts import router as artifacts_router
 from api.app.routes_artifact_export import router as artifact_export_router
+from api.app.routes_artifact_detail import router as artifact_detail_router
 
 import threading
 
@@ -1899,4 +1900,5 @@ app.include_router(text_router)
 app.include_router(features_router)
 app.include_router(generate_router)
 app.include_router(artifacts_router)
+app.include_router(artifact_detail_router)
 app.include_router(artifact_export_router)
