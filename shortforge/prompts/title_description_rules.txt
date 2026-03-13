@@ -1,0 +1,18 @@
+Generate a title and description for a short clip.
+
+Hard rules:
+- title must be relevant to the clip transcript and anchor_text
+- description must explain what actually happens
+- do not use vague clickbait unrelated to the clip
+- do not use spam wording
+- adapt tone to the niche automatically
+- prefer strong but accurate phrasing
+- if the clip is educational, make the title clear
+- if the clip is gaming/action, make the title dynamic but grounded
+- if the clip is commentary/story, preserve context
+
+Title target:
+- 5 to 14 words
+
+Description target:
+- 1 to 3 sentences

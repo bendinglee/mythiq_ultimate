@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "modes": {
+    "single_video": {
+      "enabled": true,
+      "default_count": 5
+    },
+    "montage": {
+      "enabled": true,
+      "default_count": 5,
+      "min_sources": 2,
+      "max_sources": 20
+    }
+  },
+  "genres": [
+    "auto",
+    "gaming",
+    "commentary",
+    "education",
+    "story",
+    "podcast",
+    "finance",
+    "sports",
+    "music",
+    "documentary",
+    "custom"
+  ],
+  "hook_modes": [
+    "auto",
+    "high_drama",
+    "curiosity",
+    "educational",
+    "emotional",
+    "funny",
+    "urgent"
+  ],
+  "clip_lengths": [15, 20, 30, 45, 60],
+  "style_presets": [
+    {
+      "id": "clean_story",
+      "label": "Clean Story",
+      "goal": "balanced clarity and replayability"
+    },
+    {
+      "id": "hard_hook",
+      "label": "Hard Hook",
+      "goal": "maximize first 3 seconds"
+    },
+    {
+      "id": "fast_montage",
+      "label": "Fast Montage",
+      "goal": "rapid highlights from many sources"
+    },
+    {
+      "id": "cinematic_explain",
+      "label": "Cinematic Explain",
+      "goal": "clear narrative with more breathing room"
+    }
+  ],
+  "title_styles": [
+    "auto",
+    "clean",
+    "dramatic",
+    "curiosity",
+    "educational",
+    "viral"
+  ],
+  "description_styles": [
+    "auto",
+    "short_context",
+    "seo_clean",
+    "story_context",
+    "cta_light"
+  ]
+}
