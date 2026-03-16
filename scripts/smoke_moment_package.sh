@@ -13,4 +13,7 @@ test -f "$ZIP"
 unzip -l "$ZIP" >> "$LOG" 2>&1
 
 grep -q "packaged:" "$LOG"
+grep -q "README.txt" "$LOG"
+grep -q "manifest.json" "$LOG"
+
 echo "SMOKE_MOMENT_PACKAGE_OK" | tee -a "$LOG"
