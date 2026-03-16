@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,14 +43,42 @@ def detect_mode(counts: dict[str, int]) -> str:
         return "archive_only"
     return "unknown"
 
+def package_moment_render_project(base: Path) -> Path:
+    out_dir = base / "exports" / "moment_bundle"
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    top_ranked = base / "top_ranked"
+    reports = base / "reports"
+
+    if top_ranked.exists():
+        for f in sorted(top_ranked.glob("*.mp4")):
+            shutil.copy2(f, out_dir / f.name)
+
+    if reports.exists():
+        for pat in ("*.json", "*.csv", "*.html"):
+            for f in sorted(reports.glob(pat)):
+                shutil.copy2(f, out_dir / f.name)
+
+    zip_base = base / "exports" / f"{base.name}_moment_bundle"
+    zip_path = shutil.make_archive(str(zip_base), "zip", root_dir=out_dir)
+
+    print("✅ packaged:", zip_path)
+    return Path(zip_path)
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-id", required=True)
+    ap.add_argument("--package", action="store_true")
     args = ap.parse_args()
 
     base = ROOT / "shortforge" / "projects" / args.run_id
     if not base.exists():
         raise SystemExit(f"❌ missing project: {base}")
+
+    run([str(PY), "shortforge/viral_engine/write_moment_manifest.py", "--run-id", args.run_id])
+    run([str(PY), "shortforge/viral_engine/validate_moment_manifest.py", "--run-id", args.run_id])
 
     counts = infer_counts(base)
     mode = detect_mode(counts)
@@ -60,7 +88,10 @@ def main() -> int:
 
     if mode == "moment_render_pipeline":
         print("✅ project is reusable moment-render pipeline")
+        if args.package:
+            package_moment_render_project(base)
         return 0
+
     if mode == "archive_only":
         raise SystemExit("❌ archive-only project: review/package only, not runnable")
     if mode == "candidate_pipeline":
