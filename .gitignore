@@ -94,3 +94,32 @@ mythiq/out/
 mythiq/results/
 artifacts/
 shortforge/data/
+
+# shortforge generated/runtime
+shortforge/tmp/
+shortforge/db/
+shortforge/eval/history/
+shortforge/manifests/
+shortforge/sources/
+shortforge/projects/*/clips/
+shortforge/projects/*/moment_renders/
+shortforge/projects/*/moment_transcripts/
+shortforge/projects/*/moments/
+shortforge/projects/*/transcripts/
+shortforge/projects/*/top_ranked/
+shortforge/projects/*/scene_renders/
+shortforge/projects/*/final_selects/
+shortforge/projects/*/archive_recovery/
+shortforge/projects/*/exports/
+shortforge/projects/*/reports/*.zip
+
+# review runtime media
+web/shorts_review/assets/
+web/shorts_review/media/
+
+# backups and temp variants
+*.backup.*
+*.relax_backup.*
+*.window_backup.*
+*.semanticfix.*
+*.ephemeral_backup

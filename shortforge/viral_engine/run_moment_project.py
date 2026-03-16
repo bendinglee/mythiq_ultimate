@@ -51,6 +51,7 @@ def package_moment_render_project(base: Path) -> Path:
 
     top_ranked = base / "top_ranked"
     reports = base / "reports"
+    manifest = base / "manifest.json"
 
     if top_ranked.exists():
         for f in sorted(top_ranked.glob("*.mp4")):
@@ -60,6 +61,17 @@ def package_moment_render_project(base: Path) -> Path:
         for pat in ("*.json", "*.csv", "*.html"):
             for f in sorted(reports.glob(pat)):
                 shutil.copy2(f, out_dir / f.name)
+
+    if manifest.exists():
+        shutil.copy2(manifest, out_dir / "manifest.json")
+
+    readme = out_dir / "README.txt"
+    readme.write_text(
+        f"Run ID: {base.name}\n"
+        f"Mode: moment_render_pipeline\n"
+        f"Contents: top_ranked mp4 files, reports, manifest.json\n",
+        encoding="utf-8",
+    )
 
     zip_base = base / "exports" / f"{base.name}_moment_bundle"
     zip_path = shutil.make_archive(str(zip_base), "zip", root_dir=out_dir)
@@ -77,26 +89,27 @@ def main() -> int:
     if not base.exists():
         raise SystemExit(f"❌ missing project: {base}")
 
-    run([str(PY), "shortforge/viral_engine/write_moment_manifest.py", "--run-id", args.run_id])
-    run([str(PY), "shortforge/viral_engine/validate_moment_manifest.py", "--run-id", args.run_id])
-
     counts = infer_counts(base)
     mode = detect_mode(counts)
 
     print("PROJECT_MODE:", mode)
     print("RUN_ID:", args.run_id)
 
+    if mode == "archive_only":
+        raise SystemExit("❌ archive-only project: review/package only, not runnable")
+
     if mode == "moment_render_pipeline":
+        run([str(PY), "shortforge/viral_engine/write_moment_manifest.py", "--run-id", args.run_id])
+        run([str(PY), "shortforge/viral_engine/validate_moment_manifest.py", "--run-id", args.run_id])
         print("✅ project is reusable moment-render pipeline")
         if args.package:
             package_moment_render_project(base)
         return 0
 
-    if mode == "archive_only":
-        raise SystemExit("❌ archive-only project: review/package only, not runnable")
     if mode == "candidate_pipeline":
         print("⚠️ candidate-only project: runner not implemented yet")
         return 0
+
     if mode == "scene_pipeline":
         print("⚠️ scene pipeline detected: runner path not implemented yet")
         return 0
