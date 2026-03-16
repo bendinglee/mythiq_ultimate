@@ -8,13 +8,19 @@ CSV_PATH = Path("shortforge/eval/review_template.csv")
 
 conn = sqlite3.connect(DB)
 
-with CSV_PATH.open("r", encoding="utf-8") as f:
+with CSV_PATH.open("r", encoding="utf-8", newline="") as f:
     reader = csv.DictReader(f)
     rows = list(reader)
 
+inserted = 0
+
 for r in rows:
-    if not (r.get("run_id") and r.get("clip_index")):
+    run_id = (r.get("run_id") or r.get(" run_id") or "").strip()
+    clip_index = (r.get("clip_index") or "").strip()
+
+    if not run_id or not clip_index:
         continue
+
     conn.execute("""
     INSERT INTO clip_reviews (
         run_id, clip_index, variant, title, anchor_text, transcript,
@@ -23,27 +29,28 @@ for r in rows:
         professional_polish, overall_score, chosen, exported, notes
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        r.get("run_id"),
-        int(r.get("clip_index") or 0),
-        r.get("variant"),
-        r.get("title"),
-        r.get("anchor_text"),
-        r.get("transcript"),
-        int(r.get("hook_strength") or 0),
-        int(r.get("source_relevance") or 0),
-        int(r.get("story_clarity") or 0),
-        int(r.get("pacing_smoothness") or 0),
-        int(r.get("visual_framing") or 0),
-        int(r.get("caption_readability") or 0),
-        int(r.get("emotional_payoff") or 0),
-        int(r.get("replayability") or 0),
-        int(r.get("professional_polish") or 0),
-        float(r.get("overall_score") or 0),
-        int(r.get("chosen") or 0),
-        int(r.get("exported") or 0),
-        r.get("notes"),
+        run_id,
+        int(clip_index),
+        (r.get("variant") or "").strip(),
+        (r.get("title") or "").strip(),
+        (r.get("anchor_text") or "").strip(),
+        (r.get("transcript") or "").strip(),
+        int(float((r.get("hook_strength") or "0").strip() or 0)),
+        int(float((r.get("source_relevance") or "0").strip() or 0)),
+        int(float((r.get("story_clarity") or "0").strip() or 0)),
+        int(float((r.get("pacing_smoothness") or "0").strip() or 0)),
+        int(float((r.get("visual_framing") or "0").strip() or 0)),
+        int(float((r.get("caption_readability") or "0").strip() or 0)),
+        int(float((r.get("emotional_payoff") or "0").strip() or 0)),
+        int(float((r.get("replayability") or "0").strip() or 0)),
+        int(float((r.get("professional_polish") or "0").strip() or 0)),
+        float((r.get("overall_score") or "0").strip() or 0),
+        int(float((r.get("chosen") or "0").strip() or 0)),
+        int(float((r.get("exported") or "0").strip() or 0)),
+        (r.get("notes") or "").strip(),
     ))
+    inserted += 1
 
 conn.commit()
-print(f"OK: imported {len(rows)} review rows")
+print(f"OK: inserted {inserted} review rows into {DB}")
 conn.close()

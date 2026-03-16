@@ -95,50 +95,77 @@ def _iter_any_segments(obj: Any) -> Iterable[Segment]:
             yield from _iter_any_segments(v)
 
 def discover_segments(root: Path) -> list[Segment]:
+    import json
+
+    def _clean_text(x) -> str:
+        return " ".join(str(x).replace("\n", " ").split()).strip()
+
+    def _to_float(x):
+        try:
+            return float(x)
+        except Exception:
+            return None
+
+    def _to_segment(row):
+        if not isinstance(row, dict):
+            return None
+        start = _to_float(row.get("start"))
+        end = _to_float(row.get("end"))
+        text = _clean_text(row.get("text", ""))
+        if start is None or end is None or end <= start or not text:
+            return None
+        return Segment(start=start, end=end, text=text)
+
     candidates = []
-    patterns = [
-        "source/*.json",
-        "source/**/*.json",
-        "meta/*.json",
-        "meta/**/*.json",
-        "semantic_upgrade/meta/*.json",
-        "semantic_upgrade/meta/**/*.json",
-    ]
-    seen = set()
-    for pat in patterns:
-        for p in root.glob(pat):
-            if p.name == "final_metadata.json":
-                continue
-            rp = str(p.resolve())
-            if rp not in seen:
-                seen.add(rp)
-                candidates.append(p)
+
+    tjson = root / "transcript" / "transcript.json"
+    if tjson.exists():
+        candidates.append(tjson)
+
+    for pth in sorted(root.rglob("*.json")):
+        if pth not in candidates:
+            candidates.append(pth)
 
     segs: list[Segment] = []
-    for p in candidates:
+
+    for pth in candidates:
         try:
-            obj = read_json(p)
-        except Exception:
-            continue
-        try:
-            segs.extend(list(_iter_any_segments(obj)))
+            obj = json.loads(pth.read_text(encoding="utf-8", errors="ignore"))
         except Exception:
             continue
 
-    # de-dup and sort
-    uniq = {}
-    for s in segs:
-        key = (round(s.start, 2), round(s.end, 2), s.text[:120])
-        uniq[key] = s
-    out = sorted(uniq.values(), key=lambda s: (s.start, s.end))
-    return out
+        if isinstance(obj, list):
+            for row in obj:
+                seg = _to_segment(row)
+                if seg:
+                    segs.append(seg)
+            continue
 
-# ---------- scoring / story beats ----------
+        if isinstance(obj, dict):
+            for key in ("segments", "items", "captions", "subtitles", "words", "results"):
+                val = obj.get(key)
+                if isinstance(val, list):
+                    for row in val:
+                        seg = _to_segment(row)
+                        if seg:
+                            segs.append(seg)
+
+    deduped: list[Segment] = []
+    seen = set()
+    for seg in sorted(segs, key=lambda x: (x.start, x.end, x.text)):
+        key = (round(seg.start, 2), round(seg.end, 2), seg.text[:120])
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(seg)
+
+    print(f"DISCOVER_SEGMENTS_OK count={len(deduped)} root={root}")
+    return deduped
 
 STOP = {
     "the","a","an","and","or","but","is","are","was","were","to","of","for","in","on","at",
     "with","this","that","it","its","into","from","up","out","you","your","we","they","he",
-    "she","them","his","her"
+    "she","them","his","her","i","me","my","our","ours","their","theirs"
 }
 
 HOOK_WORDS = {
@@ -152,38 +179,39 @@ PAYOFF_WORDS = {
 }
 
 def tokenize(s: str) -> list[str]:
+    import re
     return [w for w in re.findall(r"[a-z0-9]+", s.lower()) if w not in STOP]
 
 def score_segment(seg: Segment, creator: str, topic: str, raw_event: str, title: str, total_dur: float) -> float:
     text = seg.text.lower()
-    toks = tokenize(f"{creator} {topic} {raw_event} {title}")
+    toks = set(tokenize(f"{creator} {topic} {raw_event} {title}"))
+
     score = 0.0
 
     for t in toks:
         if t and t in text:
-            score += 3.0
+            score += 2.5
 
     for w in HOOK_WORDS:
         if w in text:
-            score += 0.9
+            score += 1.25
+
     for w in PAYOFF_WORDS:
         if w in text:
-            score += 0.6
+            score += 1.0
 
     dur = max(0.2, seg.end - seg.start)
-    if 1.0 <= dur <= 5.5:
-        score += 1.0
-    elif dur <= 8.0:
-        score += 0.4
+    if 1.0 <= dur <= 4.2:
+        score += 1.5
+    elif dur <= 6.0:
+        score += 0.5
 
-    # favor spread across the source for more story movement
     pos = seg.start / max(total_dur, 1.0)
-    if pos < 0.25:
+    if pos <= 0.20:
         score += 0.8
-    elif pos > 0.70:
-        score += 0.6
+    elif pos <= 0.55:
+        score += 0.5
 
-    # excitement punctuation
     if "!" in seg.text or "?" in seg.text:
         score += 0.5
 
@@ -287,7 +315,7 @@ def make_segment(src: Path, dst: Path, start: float, end: float) -> None:
     vf = (
         "scale=1080:1920:force_original_aspect_ratio=increase,"
         "crop=1080:1920,"
-        "eq=contrast=1.06:saturation=1.10:brightness=0.01,"
+        "eq=contrast=1.12:saturation=1.18:brightness=0.02,"
         "unsharp=5:5:0.6:5:5:0.0"
     )
 
@@ -321,41 +349,68 @@ def concat_mp4s(inputs: list[Path], out_path: Path, workdir: Path) -> None:
         str(out_path),
     ])
 
-def burn_subtitles(src: Path, srt_path: Path, out_path: Path) -> None:
-    style = "FontName=Arial,FontSize=14,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,Outline=2,Shadow=0,MarginV=110,Alignment=2"
-    vf = f"subtitles={str(srt_path).replace(':', '\\:')}:force_style='{style}'"
-    run([
-        "ffmpeg", "-y",
-        "-i", str(src),
-        "-vf", vf,
-        "-c:v", "libx264",
-        "-preset", "medium",
-        "-crf", "18",
-        "-c:a", "copy",
-        "-movflags", "+faststart",
-        str(out_path),
-    ])
+def burn_subtitles(video_path: Path, srt_path: Path, out_path: Path) -> None:
+    import shutil
 
-# ---------- main ----------
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(video_path, out_path)
+
+    sidecar = out_path.with_suffix(".srt")
+    shutil.copy2(srt_path, sidecar)
+
+    print(f"SUBTITLE_SIDECAR_OK video={out_path} srt={sidecar}")
 
 def main() -> int:
-    meta_path = find_latest_final_metadata()
-    finalized_meta_dir = meta_path.parent
-    finalized_dir = finalized_meta_dir.parent
-    semantic_upgrade_dir = finalized_dir.parent
-    artifact_root = semantic_upgrade_dir.parent
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--root", default="")
+    args = ap.parse_args()
+
+    meta_path = None
+    if args.root:
+        artifact_root = Path(args.root)
+        finalized_meta_dir = artifact_root / "meta"
+        finalized_meta_dir.mkdir(parents=True, exist_ok=True)
+
+        selected_json = finalized_meta_dir / "selected.json"
+        edit_plan_json = finalized_meta_dir / "edit_plan.json"
+        quality_json = finalized_meta_dir / "quality.json"
+
+        if quality_json.exists():
+            final_rows = read_json(quality_json)
+        elif edit_plan_json.exists():
+            final_rows = read_json(edit_plan_json)
+        elif selected_json.exists():
+            final_rows = read_json(selected_json)
+        else:
+            raise SystemExit(f"Missing selected/edit_plan/quality json in {finalized_meta_dir}")
+
+    else:
+        meta_path = find_latest_final_metadata()
+        if not meta_path:
+            raise SystemExit("No shorts metadata found")
+
+        finalized_meta_dir = meta_path.parent
+        finalized_dir = finalized_meta_dir.parent
+        semantic_upgrade_dir = finalized_dir.parent
+        artifact_root = semantic_upgrade_dir.parent
+        final_rows = read_json(meta_path)
 
     original = artifact_root / "source" / "original.mp4"
     if not original.exists():
         raise SystemExit(f"Missing original source video: {original}")
 
     total_dur = ffprobe_duration(original)
-    final_rows = read_json(meta_path)
+    print(f"USING_SHORTS_ROOT {artifact_root}")
     all_segments = discover_segments(artifact_root)
     if not all_segments:
         print("WARN: no transcript segments found; subtitle/recut quality will be limited")
 
-    out_dir = semantic_upgrade_dir / "ultimate"
+    if args.root:
+        out_dir = artifact_root / "ultimate"
+    else:
+        out_dir = semantic_upgrade_dir / "ultimate"
+
     renders_dir = out_dir / "renders"
     meta_out = out_dir / "meta"
     renders_dir.mkdir(parents=True, exist_ok=True)
@@ -364,16 +419,15 @@ def main() -> int:
     plan_rows = []
 
     for row in final_rows:
-        idx = int(row["index"])
+        idx = int(row.get("index", len(plan_rows) + 1))
         creator = row.get("creator", "")
         topic = row.get("topic", "")
         raw_event = row.get("raw_event", "")
-        title = row.get("title", "")
-        desc = row.get("description", "")
+        title = row.get("title", row.get("hook", ""))
+        desc = row.get("description", row.get("text", ""))
 
         beats = pick_story_segments(all_segments, creator, topic, raw_event, title, total_dur)
 
-        # fallback: if no transcript timing, keep existing hook video and just note it
         if not beats:
             src_fallback = Path(row.get("hook_video") or row.get("enhanced_video") or "")
             if not src_fallback.exists():
@@ -388,6 +442,7 @@ def main() -> int:
                 "topic": topic,
                 "mode": "fallback_copy",
                 "output_video": str(polished),
+                "beats": [],
             })
             continue
 
@@ -398,12 +453,11 @@ def main() -> int:
             out_cursor = 0.0
 
             for n, seg in enumerate(beats, 1):
-                # tighten segment a bit for pacing
                 s = max(0.0, seg.start - 0.08)
                 e = min(total_dur, seg.end + 0.08)
-                if e - s > 4.2:
+                if e - s > 3.2:
                     e = s + 4.2
-                if e - s < 1.0:
+                if e - s < 0.8:
                     e = min(total_dur, s + 1.0)
 
                 piece = td_path / f"piece_{n:02d}.mp4"
@@ -416,7 +470,7 @@ def main() -> int:
                     "src_end": e,
                     "out_start": out_cursor,
                     "out_end": out_cursor + (e - s),
-                    "text": seg.text,
+                    "text": seg.text.upper(),
                 })
                 out_cursor += (e - s)
 

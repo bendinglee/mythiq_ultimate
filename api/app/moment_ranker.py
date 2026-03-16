@@ -1,7 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass, asdict
-from typing import Any, Iterable
-import json, math, re
+import argparse, json, re
 from pathlib import Path
 
 STOP = {
@@ -9,195 +7,179 @@ STOP = {
     "with","this","that","it","its","into","from","up","out","you","your","we","they","he",
     "she","them","his","her","i","me","my","our","ours","their","theirs"
 }
+
 HOOK_WORDS = {
     "secret","truth","crazy","insane","exposed","nobody","never","worst","best","why",
-    "how","what","impossible","mistake","warning","changed","revealed","suddenly"
+    "how","what","impossible","mistake","warning","changed","revealed","suddenly",
+    "vanished","teleport","disappeared","hunters","alive","kidnapped","proof","trap",
+    "shield","safe house","machine","cannon"
 }
+
 PAYOFF_WORDS = {
     "so","therefore","finally","because","result","then","after","won","lost","found",
-    "proved","ended","realized","understood","discovered"
+    "proved","ended","realized","understood","discovered","alive","killed","escaped",
+    "teleport","vanish","bounty","kidnapping","machine","justice","shield"
 }
 
-@dataclass
-class Segment:
-    start: float
-    end: float
-    text: str
+WEAK_LINES = {
+    "what", "okay", "yeah", "nice", "go", "wait", "dude"
+}
 
-@dataclass
-class Candidate:
-    start: float
-    end: float
-    text: str
-    score: float
-    angle: str
-    hook: str
-    payoff: str
-    region: str
+def read_json(p: Path):
+    return json.loads(p.read_text(encoding="utf-8"))
 
-def _clean_text(x: Any) -> str:
-    return " ".join(str(x).replace("\n", " ").split()).strip()
-
-def _to_float(x: Any):
-    try:
-        return float(x)
-    except Exception:
-        return None
-
-def _to_segment(row: Any):
-    if not isinstance(row, dict):
-        return None
-    start = _to_float(row.get("start"))
-    end = _to_float(row.get("end"))
-    text = _clean_text(row.get("text", ""))
-    if start is None or end is None or end <= start or not text:
-        return None
-    return Segment(start=start, end=end, text=text)
-
-def discover_segments(root: Path) -> list[Segment]:
-    candidates = []
-    tjson = root / "transcript" / "transcript.json"
-    if tjson.exists():
-        candidates.append(tjson)
-    for p in sorted(root.rglob("*.json")):
-        if p not in candidates:
-            candidates.append(p)
-
-    segs: list[Segment] = []
-    for p in candidates:
-        try:
-            obj = json.loads(p.read_text(encoding="utf-8", errors="ignore"))
-        except Exception:
-            continue
-
-        if isinstance(obj, list):
-            for row in obj:
-                seg = _to_segment(row)
-                if seg:
-                    segs.append(seg)
-            continue
-
-        if isinstance(obj, dict):
-            for key in ("segments", "items", "captions", "subtitles", "words", "results"):
-                val = obj.get(key)
-                if isinstance(val, list):
-                    for row in val:
-                        seg = _to_segment(row)
-                        if seg:
-                            segs.append(seg)
-
-    out: list[Segment] = []
-    seen = set()
-    for seg in sorted(segs, key=lambda x: (x.start, x.end, x.text)):
-        key = (round(seg.start, 2), round(seg.end, 2), seg.text[:120])
-        if key in seen:
-            continue
-        seen.add(key)
-        out.append(seg)
-    return out
+def write_json(p: Path, obj):
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(obj, indent=2), encoding="utf-8")
 
 def tokenize(s: str) -> list[str]:
     return [w for w in re.findall(r"[a-z0-9]+", s.lower()) if w not in STOP]
 
+def clean_text(s: str) -> str:
+    return " ".join(str(s).replace("\n", " ").split()).strip()
+
+def load_segments(job_root: Path) -> list[dict]:
+    p = job_root / "transcript" / "transcript.json"
+    data = read_json(p)
+    segs = data.get("segments", [])
+    out = []
+    for row in segs:
+        try:
+            start = float(row["start"])
+            end = float(row["end"])
+            text = clean_text(row["text"])
+        except Exception:
+            continue
+        if end <= start or not text:
+            continue
+        out.append({"start": start, "end": end, "text": text})
+    return out
+
 def angle_for_text(text: str) -> str:
     t = text.lower()
+    if any(w in t for w in ("alive","proof","revealed","found","discovered","realized","connection")):
+        return "reveal"
+    if any(w in t for w in ("teleport","vanish","disappear","impossible","immortal")):
+        return "mystery"
+    if any(w in t for w in ("mistake","wrong","failed","failure","problem","issue","trapped")):
+        return "problem"
+    if any(w in t for w in ("hunters","kidnap","kidnapping","bounty","safe house","shield")):
+        return "threat"
+    if any(w in t for w in ("machine","trap","cannon","kill","justice","survive","escape")):
+        return "payoff"
     if "why" in t or "how" in t:
         return "curiosity"
-    if any(w in t for w in ("mistake","wrong","failed","failure","problem","issue")):
-        return "problem"
-    if any(w in t for w in ("finally","revealed","found","discovered","realized")):
-        return "reveal"
-    if any(w in t for w in ("best","worst","crazy","insane","impossible")):
+    if any(w in t for w in ("best","worst","crazy","insane")):
         return "extreme"
-    if any(w in t for w in ("won","lost","result","proved","ended")):
-        return "payoff"
     return "insight"
 
-def hook_for_text(text: str) -> str:
-    clean = _clean_text(text)
-    if not clean:
-        return ""
-    parts = re.split(r'(?<=[.!?])\s+', clean)
-    return parts[0][:140]
+def build_windows(segs: list[dict], min_dur: float = 8.0, max_dur: float = 22.0) -> list[dict]:
+    windows = []
+    n = len(segs)
+    for i in range(n):
+        start = segs[i]["start"]
+        text_parts = []
+        end = start
+        for j in range(i, n):
+            end = segs[j]["end"]
+            dur = end - start
+            text_parts.append(segs[j]["text"])
+            if dur > max_dur:
+                break
+            if dur >= min_dur:
+                text = clean_text(" ".join(text_parts))
+                windows.append({
+                    "start": round(start, 2),
+                    "end": round(end, 2),
+                    "duration": round(dur, 2),
+                    "text": text,
+                })
+    return windows
 
-def payoff_for_text(text: str) -> str:
-    clean = _clean_text(text)
-    if not clean:
-        return ""
-    parts = re.split(r'(?<=[.!?])\s+', clean)
-    return parts[-1][:140]
-
-def score_segment(seg: Segment, topic_hint: str, total_dur: float) -> float:
-    text = seg.text.lower()
-    toks = set(tokenize(topic_hint))
+def score_window(win: dict, topic_hint: str) -> float:
+    text = win["text"].lower()
+    wc = len(win["text"].split())
+    dur = float(win["duration"])
     score = 0.0
 
+    toks = set(tokenize(topic_hint))
     for t in toks:
         if t and t in text:
-            score += 2.5
+            score += 1.2
 
     for w in HOOK_WORDS:
         if w in text:
-            score += 1.25
+            score += 1.4
     for w in PAYOFF_WORDS:
         if w in text:
-            score += 1.0
+            score += 1.2
 
-    dur = max(0.2, seg.end - seg.start)
-    if 1.0 <= dur <= 4.2:
-        score += 1.5
-    elif dur <= 6.0:
-        score += 0.5
+    if 10.0 <= dur <= 20.0:
+        score += 2.5
+    elif 8.0 <= dur <= 24.0:
+        score += 1.2
 
-    pos = seg.start / max(total_dur, 1.0)
-    if pos <= 0.20:
-        score += 0.8
-    elif pos <= 0.55:
-        score += 0.5
+    if 25 <= wc <= 90:
+        score += 2.5
+    elif 15 <= wc <= 110:
+        score += 1.2
+    else:
+        score -= 2.5
 
-    if "!" in seg.text or "?" in seg.text:
-        score += 0.5
+    weak_hits = sum(1 for x in re.findall(r"[A-Za-z0-9']+", text) if x in WEAK_LINES)
+    if weak_hits >= 3:
+        score -= 2.0
 
-    if len(seg.text.split()) >= 6:
-        score += 0.5
+    strong_terms = (
+        "skinless", "hunters", "teleport", "vanish", "disappear", "alive",
+        "kidnap", "kidnapping", "bounty", "safe house", "shield", "maypick",
+        "machine", "cannon", "trap", "justice", "immortal", "totem"
+    )
+    for term in strong_terms:
+        if term in text:
+            score += 1.6
 
-    return score
+    if "?" in win["text"] or "!" in win["text"]:
+        score += 0.4
 
-def build_candidates(root: Path, topic_hint: str = "") -> list[Candidate]:
-    segs = discover_segments(root)
-    if not segs:
-        return []
-    total_dur = max(s.end for s in segs)
-    out = []
-    for seg in segs:
-        pos = seg.start / max(total_dur, 1.0)
-        region = "early" if pos < 0.33 else ("mid" if pos < 0.66 else "late")
-        out.append(Candidate(
-            start=seg.start,
-            end=seg.end,
-            text=_clean_text(seg.text),
-            score=score_segment(seg, topic_hint, total_dur),
-            angle=angle_for_text(seg.text),
-            hook=hook_for_text(seg.text),
-            payoff=payoff_for_text(seg.text),
-            region=region,
-        ))
-    return sorted(out, key=lambda x: x.score, reverse=True)
+    return round(score, 2)
+
+def make_hook(text: str) -> str:
+    words = clean_text(text).split()
+    if not words:
+        return ""
+    return " ".join(words[:18])
 
 def main():
-    import argparse
     ap = argparse.ArgumentParser()
-    ap.add_argument("root")
+    ap.add_argument("job_root")
     ap.add_argument("--topic", default="")
-    ap.add_argument("--out", default="")
+    ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
-    rows = [asdict(x) for x in build_candidates(Path(args.root), args.topic)]
-    if args.out:
-        Path(args.out).write_text(json.dumps(rows, indent=2), encoding="utf-8")
-        print(args.out)
-    else:
-        print(json.dumps(rows[:20], indent=2))
+    root = Path(args.job_root)
+    segs = load_segments(root)
+    windows = build_windows(segs)
+
+    rows = []
+    for w in windows:
+        txt = w["text"]
+        if len(txt.split()) < 12:
+            continue
+        row = {
+            "start": w["start"],
+            "end": w["end"],
+            "duration": w["duration"],
+            "text": txt,
+            "hook": make_hook(txt),
+            "angle": angle_for_text(txt),
+        }
+        row["score"] = score_window(row, args.topic)
+        rows.append(row)
+
+    rows.sort(key=lambda x: x["score"], reverse=True)
+    write_json(Path(args.out), rows[:120])
+    print(args.out)
 
 if __name__ == "__main__":
     main()
