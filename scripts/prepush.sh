@@ -100,3 +100,5 @@ test -x "$ROOT/scripts/smoke_artifact_registry_backfill.sh" && "$ROOT/scripts/sm
 test -x "$ROOT/scripts/smoke_artifact_detail.sh" && "$ROOT/scripts/smoke_artifact_detail.sh"
 
 test -x "$ROOT/scripts/smoke_moment_manifest.sh" && "$ROOT/scripts/smoke_moment_manifest.sh"
+
+test -x "$ROOT/scripts/smoke_moment_mode.sh" && "$ROOT/scripts/smoke_moment_mode.sh"
