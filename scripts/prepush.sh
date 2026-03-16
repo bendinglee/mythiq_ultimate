@@ -102,3 +102,5 @@ test -x "$ROOT/scripts/smoke_artifact_detail.sh" && "$ROOT/scripts/smoke_artifac
 test -x "$ROOT/scripts/smoke_moment_manifest.sh" && "$ROOT/scripts/smoke_moment_manifest.sh"
 
 test -x "$ROOT/scripts/smoke_moment_mode.sh" && "$ROOT/scripts/smoke_moment_mode.sh"
+
+test -x "$ROOT/scripts/smoke_moment_dispatcher.sh" && "$ROOT/scripts/smoke_moment_dispatcher.sh"
