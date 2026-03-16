@@ -1,0 +1,8 @@
+{
+  "patterns": [
+    {"id":"reveal","weight":1.0},
+    {"id":"mistake","weight":1.0},
+    {"id":"journey","weight":1.0},
+    {"id":"proof","weight":1.0}
+  ]
+}

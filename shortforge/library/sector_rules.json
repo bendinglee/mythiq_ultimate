@@ -1,0 +1,38 @@
+{
+  "entertainment": {
+    "hook_words": [
+      "what", "wait", "welcome", "today", "win", "wins", "loser", "lose",
+      "caught", "secret", "surprise", "money", "score", "party", "100k",
+      "penalty", "pick", "higher", "lower", "oh no", "hear me out"
+    ],
+    "arc_words": [
+      "but", "then", "because", "so", "however", "finally", "after",
+      "before", "missed", "ruined", "happy", "left", "out", "still"
+    ],
+    "transition_rules": [
+      "hard_cut",
+      "caption_pop",
+      "reaction_zoom",
+      "punch_in"
+    ],
+    "scoring_weights": {
+      "hook_strength": 0.30,
+      "emotional_arc": 0.24,
+      "pacing_score": 0.18,
+      "caption_clarity": 0.14,
+      "sound_sync": 0.14
+    }
+  },
+  "general": {
+    "hook_words": ["what", "wait", "today", "why", "how", "secret", "surprise"],
+    "arc_words": ["but", "then", "because", "finally", "after", "before"],
+    "transition_rules": ["hard_cut", "caption_pop"],
+    "scoring_weights": {
+      "hook_strength": 0.30,
+      "emotional_arc": 0.24,
+      "pacing_score": 0.18,
+      "caption_clarity": 0.14,
+      "sound_sync": 0.14
+    }
+  }
+}
