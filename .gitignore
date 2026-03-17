@@ -123,3 +123,6 @@ web/shorts_review/media/
 *.window_backup.*
 *.semanticfix.*
 *.ephemeral_backup
+
+# local shorts studio env
+.env.shorts
