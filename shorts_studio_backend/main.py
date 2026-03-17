@@ -214,12 +214,12 @@ def final_render_endpoint(req: FinalRenderReq):
 
     try:
         rendered = render_final(
-        src=src,
-        start=float(clip["start"]),
-        end=float(clip["end"]),
-        out_path=str(out_path),
-        mode=req.mode,
-        ass_path=ass_path,
+            src=src,
+            start=float(clip["start"]),
+            end=float(clip["end"]),
+            out_path=str(out_path),
+            mode=req.mode,
+            ass_path=ass_path,
         )
     except Exception as e:
         raise HTTPException(
@@ -228,23 +228,24 @@ def final_render_endpoint(req: FinalRenderReq):
                 "error": "final_render_failed",
                 "message": str(e),
                 "burn_captions": bool(getattr(req, "burn_captions", False)),
-                "ass_path": ass_path if "ass_path" in locals() else None,
-                "final_path": str(final_path) if "final_path" in locals() else None,
+                "ass_path": ass_path,
+                "final_path": str(out_path),
             },
         )
 
-    clip["final_path"] = rendered
-    clip["hook_words"] = hook_words(clip.get("text", ""))
+    clip["final_path"] = rendered["final_path"]
+    clip_hook_words = hook_words(clip.get("text", ""))
+    clip["hook_words"] = clip_hook_words
     save_manifest(req.project_id, data)
 
     return {
-    "ok": True,
-    "project_id": req.project_id,
-    "clip_name": req.clip_name,
-    "final_path": rendered["final_path"],
-    "ass_path": ass_path,
-    "hook_words": hook_words,
-    "burn_captions_requested": rendered["burn_captions_requested"],
-    "burn_captions_applied": rendered["burn_captions_applied"],
-    "warning": rendered["warning"],
-}
+        "ok": True,
+        "project_id": req.project_id,
+        "clip_name": req.clip_name,
+        "final_path": rendered["final_path"],
+        "ass_path": ass_path,
+        "hook_words": clip_hook_words,
+        "burn_captions_requested": rendered["burn_captions_requested"],
+        "burn_captions_applied": rendered["burn_captions_applied"],
+        "warning": rendered["warning"],
+    }
