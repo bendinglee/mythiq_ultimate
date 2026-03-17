@@ -126,3 +126,5 @@ web/shorts_review/media/
 
 # local shorts studio env
 .env.shorts
+
+shortforge/projects/
