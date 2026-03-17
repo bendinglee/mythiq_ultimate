@@ -1,0 +1,20 @@
+{
+  "flow_id": "flow.game_pack_builder",
+  "name": "Football Pack Builder",
+  "goal": "Generate a safe football player pack-opening collection game blueprint.",
+  "inputs": {
+    "theme": "football pack opening",
+    "engine": ["phaser"],
+    "style": ["arcade", "clean", "ultimate-team-inspired"],
+    "mode": ["offline_single_player"]
+  },
+  "outputs": [
+    "game design json",
+    "economy rules",
+    "rarity table",
+    "screen list",
+    "animation plan",
+    "asset manifest",
+    "phaser scaffold brief"
+  ]
+}

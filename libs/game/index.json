@@ -1,0 +1,30 @@
+{
+  "version": "0.1.0",
+  "patterns": [
+    {
+      "id": "topdown_shooter_v1",
+      "feature": "game",
+      "tags": [
+        "shooter",
+        "topdown",
+        "waves",
+        "coins",
+        "juice"
+      ],
+      "prompt_template": "Build a top-down shooter. Player moves with WASD/Arrows, shoot with Space. Spawn enemy waves. Coins drop. Add screen shake + hit flash. Add score + combo."
+    },
+    {
+      "id": "survivor_arena_v1",
+      "feature": "game",
+      "tags": [
+        "survivor",
+        "arena",
+        "waves",
+        "enemies",
+        "dodging",
+        "juice"
+      ],
+      "prompt_template": "Build a survivor arena game. Player moves with WASD/Arrows, auto-fires or directional attacks, enemy waves intensify over time, pickups and upgrades appear, and the game includes score, hit flash, screen shake, and a clean HUD."
+    }
+  ]
+}

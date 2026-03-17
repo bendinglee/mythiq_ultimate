@@ -1,0 +1,120 @@
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import subprocess
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+PY = ROOT / ".venv" / "bin" / "python"
+
+def run(cmd: list[str]) -> None:
+    print("RUN:", " ".join(cmd))
+    subprocess.run(cmd, cwd=ROOT, check=True)
+
+def count_files(p: Path, pattern: str) -> int:
+    if not p.exists():
+        return 0
+    return sum(1 for x in p.glob(pattern) if x.is_file())
+
+def infer_counts(base: Path) -> dict[str, int]:
+    manifest_path = base / "manifest.json"
+    if manifest_path.exists():
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        assets = data.get("assets", {})
+        return {k: len(v) for k, v in assets.items() if isinstance(v, list)}
+    return {
+        "clips": count_files(base / "clips", "*.mp4"),
+        "moment_renders": count_files(base / "moment_renders", "*.mp4"),
+        "top_ranked": count_files(base / "top_ranked", "*.mp4"),
+        "scene_renders": count_files(base / "scene_renders", "*.mp4"),
+        "final_selects": count_files(base / "final_selects", "*.mp4"),
+    }
+
+def detect_mode(counts: dict[str, int]) -> str:
+    if counts.get("scene_renders", 0) >= 5 and counts.get("final_selects", 0) >= 1:
+        return "scene_pipeline"
+    if counts.get("moment_renders", 0) >= 3 and counts.get("top_ranked", 0) >= 1:
+        return "moment_render_pipeline"
+    if counts.get("clips", 0) >= 3:
+        return "candidate_pipeline"
+    if counts.get("final_selects", 0) >= 1:
+        return "archive_only"
+    return "unknown"
+
+def package_moment_render_project(base: Path) -> Path:
+    out_dir = base / "exports" / "moment_bundle"
+    if out_dir.exists():
+        shutil.rmtree(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    top_ranked = base / "top_ranked"
+    reports = base / "reports"
+    manifest = base / "manifest.json"
+
+    if top_ranked.exists():
+        for f in sorted(top_ranked.glob("*.mp4")):
+            shutil.copy2(f, out_dir / f.name)
+
+    if reports.exists():
+        for pat in ("*.json", "*.csv", "*.html"):
+            for f in sorted(reports.glob(pat)):
+                shutil.copy2(f, out_dir / f.name)
+
+    if manifest.exists():
+        shutil.copy2(manifest, out_dir / "manifest.json")
+
+    readme = out_dir / "README.txt"
+    readme.write_text(
+        f"Run ID: {base.name}\n"
+        f"Mode: moment_render_pipeline\n"
+        f"Contents: top_ranked mp4 files, reports, manifest.json\n",
+        encoding="utf-8",
+    )
+
+    zip_base = base / "exports" / f"{base.name}_moment_bundle"
+    zip_path = shutil.make_archive(str(zip_base), "zip", root_dir=out_dir)
+
+    print("✅ packaged:", zip_path)
+    return Path(zip_path)
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--run-id", required=True)
+    ap.add_argument("--package", action="store_true")
+    args = ap.parse_args()
+
+    base = ROOT / "shortforge" / "projects" / args.run_id
+    if not base.exists():
+        raise SystemExit(f"❌ missing project: {base}")
+
+    counts = infer_counts(base)
+    mode = detect_mode(counts)
+
+    print("PROJECT_MODE:", mode)
+    print("RUN_ID:", args.run_id)
+
+    if mode == "archive_only":
+        raise SystemExit("❌ archive-only project: review/package only, not runnable")
+
+    if mode == "moment_render_pipeline":
+        run([str(PY), "shortforge/viral_engine/write_moment_manifest.py", "--run-id", args.run_id])
+        run([str(PY), "shortforge/viral_engine/validate_moment_manifest.py", "--run-id", args.run_id])
+        print("✅ project is reusable moment-render pipeline")
+        if args.package:
+            package_moment_render_project(base)
+        return 0
+
+    if mode == "candidate_pipeline":
+        print("⚠️ candidate-only project: runner not implemented yet")
+        return 0
+
+    if mode == "scene_pipeline":
+        print("⚠️ scene pipeline detected: runner path not implemented yet")
+        return 0
+
+    raise SystemExit("❌ unknown project mode")
+
+if __name__ == "__main__":
+    raise SystemExit(main())

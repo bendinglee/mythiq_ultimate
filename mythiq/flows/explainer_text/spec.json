@@ -1,0 +1,19 @@
+{
+  "flow_id": "flow.explainer_text",
+  "name": "Explainer Text Engine",
+  "goal": "Turn a topic into a clear, layered explanation in short, long, video-script, and myth-vs-reality forms.",
+  "inputs": {
+    "topic": "string",
+    "mode": ["simple", "technical", "video_script", "myth_vs_reality"],
+    "tone": ["neutral", "cinematic", "documentary"],
+    "length": ["short", "medium", "long"]
+  },
+  "outputs": [
+    "summary",
+    "key claims",
+    "what is established",
+    "what is speculative",
+    "script version",
+    "thumbnail title options"
+  ]
+}

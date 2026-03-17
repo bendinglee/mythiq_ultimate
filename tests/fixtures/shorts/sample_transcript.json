@@ -1,0 +1,12 @@
+{
+  "text": "This is a test intro. Big moment happens here. This is the payoff section.",
+  "segments": [
+    {"start": 0.0, "end": 3.0, "text": "This is a test intro."},
+    {"start": 3.0, "end": 7.0, "text": "Big moment happens here."},
+    {"start": 7.0, "end": 11.5, "text": "This is the payoff section."}
+  ],
+  "language": "en",
+  "duration_sec": 11.5,
+  "source_duration_sec": 12.0,
+  "transcribe_elapsed_sec": 0.0
+}

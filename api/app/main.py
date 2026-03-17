@@ -1,4 +1,5 @@
 from __future__ import annotations
+from api.app.routes_artifact_search import router as artifact_search_router
 from api.app.routes_execute import router as execute_router
 from api.app.routes_project import router as project_router
 from api.app.routes_project_resume import router as project_resume_router
@@ -6,6 +7,7 @@ from api.app.routes_project_status import router as project_status_router
 from api.app.routes_project_approve import router as project_approve_router
 from api.app.routes_export import router as export_router
 from api.app.routes_export_zip import router as export_zip_router
+from api.app.routes_builder import router as builder_router
 from api.app.core.models import ExecuteIn as CoreExecuteIn
 from api.app.core.router import route_execute
 from api.app.core.executor import make_plan, execute_feature, repair_result
@@ -18,6 +20,15 @@ import time
 from datetime import datetime, timezone
 from . import db as mythiq_db
 import zipfile
+from api.app.routes_image import router as image_router
+from api.app.routes_game_generate import router as game_generate_router
+from api.app.routes_animation import router as animation_router
+from api.app.routes_text import router as text_router
+from api.app.routes_features import router as features_router
+from api.app.routes_generate import router as generate_router
+from api.app.routes_artifacts import router as artifacts_router
+from api.app.routes_artifact_export import router as artifact_export_router
+from api.app.routes_artifact_detail import router as artifact_detail_router
 
 import threading
 
@@ -25,6 +36,9 @@ import os
 import sqlite3
 from pathlib import Path
 from api.app.utils.game_tools import enforce_canonical_game_tools
+from api.app.routes_code import router as code_router
+from api.app.routes_docs import router as docs_router
+from api.app.routes_shorts import router as shorts_router
 
 import time
 START_TS = time.time()
@@ -42,7 +56,6 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 APP_START = time.time()
-
 
 def route_request(prompt: str) -> dict:
     t = (prompt or "").lower()
@@ -80,7 +93,6 @@ def route_request(prompt: str) -> dict:
 OLLAMA_BASE = os.environ.get("OLLAMA_BASE", "http://127.0.0.1:11434")
 DB_PATH = Path(os.environ.get("MYTHIQ_DB_PATH", str(Path("data/mythiq.db"))))
 app = FastAPI(title="Mythiq Ultimate API", version="0.1.0")
-
 
 def _pydantic_rebuild_all_models() -> None:
     """
@@ -135,31 +147,17 @@ def db() -> sqlite3.Connection:
 
 def apply_ab_to_library(conn, ab_group: str) -> None:
 
-
-
     # Guard: older schemas may not have generations.pattern_id yet
-
-
 
     try:
 
-
-
         cols = [r[1] for r in conn.execute("PRAGMA table_info(generations)").fetchall()]
-
-
 
     except sqlite3.OperationalError:
 
-
-
         return
 
-
-
     if "pattern_id" not in cols:
-
-
 
         return
 
@@ -202,7 +200,6 @@ class RunIn(BaseModel):
     implicit_score: float | None = None
     ab_winner: int | None = None
 
-
 class RunOut(BaseModel):
     ok: bool
     feature: str
@@ -210,14 +207,9 @@ class RunOut(BaseModel):
     output: str
     ms: int
 
-
 @app.get("/readyz")
 def readyz() -> Dict[str, Any]:
     return {"ok": True, "uptime_s": int(time.time() - APP_START)}
-
-
-
-
 
 @app.get("/v1/schema/health")
 def schema_health():
@@ -236,8 +228,6 @@ def debug_paths():
 LOG_DIR = Path(os.environ.get("MYTHIQ_LOG_DIR", str(Path("data/logs"))))
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 METRICS_PATH = LOG_DIR / "metrics.jsonl"
-
-
 
 def _warmup_ollama_async() -> None:
     if os.environ.get("MYTHIQ_WARMUP", "1") not in ("1", "true", "TRUE", "yes", "YES"):
@@ -293,13 +283,10 @@ def _append_metric(obj: dict) -> None:
     except Exception:
         pass
 
-
-
 # =========================
 # Router v3 + Pipeline Core
 # =========================
 from typing import Optional, List
-
 
 def _infer_game_download_url(output: str):
     try:
@@ -399,7 +386,6 @@ def route_v3(inp: RouteV3In):
 # Universal pipeline wrapper
 # -------------------------
 
-
 # -------------------------
 # Game builder (Phaser 3)
 # -------------------------
@@ -412,7 +398,6 @@ def _safe_slug(x: str) -> str:
     x = re.sub(r'[^a-z0-9]+', '-', x).strip('-')
     return x[:50] or "game"
 
-
 def _assert_tools_in_bundle(outdir: Path) -> None:
     # Hard gate: exports must include canonical tools in dir
     tools_dir = outdir / "tools"
@@ -423,7 +408,6 @@ def _assert_tools_in_bundle(outdir: Path) -> None:
     missing = sorted(need - have)
     if missing:
         raise RuntimeError(f"export tools/ missing files: {missing}")
-
 
 def build_phaser_game_bundle(title: str, prompt: str) -> dict:
     """
@@ -778,11 +762,9 @@ def execute(body: Dict[str, Any] = Body(...)):
         },
     }
 
-
 @app.post("/v1/chat", response_model=ChatOut)
 def v1_chat(inp: ChatIn):
     t0 = time.time()
-
 
     # Call Ollama directly (stable wiring)
     model = os.environ.get("MYTHIQ_MODEL", "llama3.2:3b")
@@ -812,7 +794,6 @@ def v1_chat(inp: ChatIn):
         err = str(e)
         out = f"OLLAMA_ERROR: {err}"
 
-
     ms = int((time.time() - t0) * 1000)
 
     resp = {
@@ -837,10 +818,6 @@ def v1_chat(inp: ChatIn):
 
     return resp
 
-
-
-
-
 @app.get("/v1/metrics/tail")
 def metrics_tail(n: int = 50):
     n = max(1, min(int(n), 500))
@@ -851,7 +828,6 @@ def metrics_tail(n: int = 50):
         return {"ok": True, "lines": lines[-n:]}
     except Exception as e:
         return {"ok": False, "error": str(e), "lines": []}
-
 
 @app.get("/v1/status")
 def status():
@@ -885,8 +861,6 @@ def status():
         }
     except Exception as e:
         return {"ok": False, "error": str(e)}
-
-
 
 @app.get("/v1/db_debug")
 def db_debug():
@@ -923,26 +897,16 @@ def health() -> Dict[str, Any]:
     conn.close()
     return {"ok": True}
 
-
 @app.post("/v1/route")
 def route(inp: RunIn) -> Dict[str, Any]:
     r = route_request(inp.prompt)
     return {"ok": True, **r}
-
-
-
 
 class AbPickIn(BaseModel):
     ab_group: str = Field(..., min_length=1)
     winner: str = Field(..., pattern="^(A|B)$")  # vote for A or B
     user_rating: float | None = Field(None, ge=0.0, le=5.0)
     voter_id: str | None = Field(None, min_length=1)
-
-
-
-
-
-
 
 class OutcomeIn(BaseModel):
     feature: str
@@ -953,8 +917,6 @@ class OutcomeIn(BaseModel):
 class OutcomeOut(BaseModel):
     ok: bool
     inserted: bool
-
-
 
 class PatternVariantIn(BaseModel):
     pattern_id: str
@@ -1001,8 +963,6 @@ class PatternIn(BaseModel):
     pattern_id: str = Field(..., min_length=1)
     system_prompt: str | None = None
     prefix: str | None = None
-
-
 
 class GameBuildOut(BaseModel):
     ok: bool
@@ -1100,7 +1060,6 @@ def ab_pick(inp: AbPickIn = Body(...)) -> Dict[str, Any]:
         except Exception:
             pass
 
-
         return {
             "ok": True,
             "ab_group": inp.ab_group,
@@ -1129,7 +1088,6 @@ def list_patterns() -> Dict[str, Any]:
         ],
     }
 
-
 @app.get("/v1/patterns/{pattern_id}")
 def get_pattern(pattern_id: str) -> Dict[str, Any]:
     conn = db()
@@ -1141,7 +1099,6 @@ def get_pattern(pattern_id: str) -> Dict[str, Any]:
     if not r:
         return {"ok": False, "detail": "not found"}
     return {"ok": True, "row": {"pattern_id": r[0], "system_prompt": r[1], "prefix": r[2], "updated_ts": r[3]}}
-
 
 @app.put("/v1/patterns/{pattern_id}")
 def put_pattern(pattern_id: str, inp: 
@@ -1225,7 +1182,6 @@ async def run(inp: RunIn) -> RunOut:
     conn.close()
 
     return RunOut(ok=True, feature=inp.feature, model=inp.model, output=out, ms=int((time.time() - t0) * 1000))
-
 
 # ---------------------------
 # SQLite (runs + pattern stats)
@@ -1443,7 +1399,6 @@ def run_get(run_id: str):
     finally:
         con.close()
 
-
 @app.post("/v1/game/build", response_model=GameBuildOut)
 def game_build(inp: dict):
     prompt = str(inp.get("prompt") or "Make a tiny arcade loop.")
@@ -1488,7 +1443,6 @@ def game_build(inp: dict):
             pass
     return {"ok": True, **b}
 
-
 @app.get("/v1/game/download/{game_id}")
 def game_download(game_id: str):
     # Find matching zip in EXPORTS_DIR
@@ -1507,7 +1461,6 @@ def game_download(game_id: str):
         filename=fp.name,
         media_type="application/zip",
     )
-
 
 @app.get("/v1/metrics", response_model=MetricsOut)
 def v1_metrics():
@@ -1537,7 +1490,6 @@ def v1_metrics():
         "last_20": last_20,
     }
 
-
 def _log_game_build(game_id: str, title: str, prompt: str, started: float, status: str, error: str | None = None) -> None:
     try:
         created_at = datetime.now(timezone.utc).isoformat()
@@ -1555,12 +1507,6 @@ def _log_game_build(game_id: str, title: str, prompt: str, started: float, statu
         # logging must never break the pipeline
         pass
 
-
-
-
-
-
-
 @app.post("/v1/pattern/variant/set", response_model=PatternVariantOut)
 def pattern_variant_set(inp: PatternVariantIn):
     conn = db()
@@ -1573,7 +1519,6 @@ def pattern_variant_set(inp: PatternVariantIn):
         return {"ok": True, "inserted": True}
     finally:
         conn.close()
-
 
 @app.get("/v1/pattern/variant/get", response_model=PatternVariantGetOut)
 def pattern_variant_get(pattern_id: str, variant: str):
@@ -1588,7 +1533,6 @@ def pattern_variant_get(pattern_id: str, variant: str):
         return {"ok": True, "pattern_id": row[0], "variant": row[1], "system_prompt": row[2], "prefix": row[3]}
     finally:
         conn.close()
-
 
 @app.get("/v1/ab_decision/get")
 def ab_decision_get(ab_group: str):
@@ -1610,7 +1554,6 @@ def ab_decision_get(ab_group: str):
     finally:
         conn.close()
 
-
 @app.get("/v1/pattern/variant/list")
 def pattern_variant_list(pattern_id: str):
     conn = db()
@@ -1626,8 +1569,6 @@ def pattern_variant_list(pattern_id: str):
         }
     finally:
         conn.close()
-
-
 
 @app.post("/v1/pattern/render", response_model=PatternRenderOut)
 def pattern_render(inp: PatternRenderIn):
@@ -1739,8 +1680,6 @@ def generations_export(limit: int = 100):
     from fastapi.responses import Response
     return Response(content=csv_text, media_type="text/csv; charset=utf-8")
 
-
-
 @app.post("/v1/outcomes/seed")
 def outcomes_seed(feature: str = "ab_pick", key: str = "smoke", reward: float = 1.0, meta_json: str = '{"smoke":true}'):
     import time
@@ -1769,7 +1708,6 @@ def generations_seed(feature: str = "gen", key: str = "smoke", prompt: str = "p"
         conn.close()
     return {"ok": True}
 
-
 @app.get("/v1/outcomes/export")
 def outcomes_export(limit: int = 100):
     conn = connect()
@@ -1779,7 +1717,6 @@ def outcomes_export(limit: int = 100):
         conn.close()
     from fastapi.responses import Response
     return Response(content=csv_text, media_type="text/csv; charset=utf-8")
-
 
 # --- pydantic forward-ref rebuild (openapi safety) ---
 def _rebuild_models_for_openapi() -> None:
@@ -1797,7 +1734,6 @@ def _rebuild_models_for_openapi() -> None:
                 pass
 
 _rebuild_models_for_openapi()
-
 
 # =========================
 # RAG: qdrant + ollama
@@ -1869,9 +1805,25 @@ def rag_query(inp: RagQueryIn):
     return RagQueryOut(query=inp.query, top_k=inp.top_k, hits=out_hits)
 
 app.include_router(execute_router)
+app.include_router(code_router)
+app.include_router(docs_router)
+app.include_router(shorts_router)
+app.include_router(builder_router)
 app.include_router(project_router)
 app.include_router(project_resume_router)
 app.include_router(project_status_router)
 app.include_router(project_approve_router)
 app.include_router(export_router)
 app.include_router(export_zip_router)
+
+app.include_router(image_router)
+app.include_router(game_generate_router)
+app.include_router(animation_router)
+app.include_router(text_router)
+app.include_router(features_router)
+app.include_router(generate_router)
+app.include_router(artifacts_router)
+app.include_router(artifact_search_router)
+app.include_router(artifact_detail_router)
+app.include_router(artifact_export_router)
+

@@ -79,3 +79,47 @@ projects/*/state.json
 # keep explicit fixtures only
 !projects/_fixtures/
 !projects/_fixtures/**
+projects/code_*/
+projects/docs_*/
+projects/shorts_*/
+projects/game_*/
+projects/animation_*/
+projects/text_*/
+projects/_meta/
+projects/image_*/
+
+# mythiq generated runtime
+mythiq/generated/
+mythiq/out/
+mythiq/results/
+artifacts/
+shortforge/data/
+
+# shortforge generated/runtime
+shortforge/tmp/
+shortforge/db/
+shortforge/eval/history/
+shortforge/manifests/
+shortforge/sources/
+shortforge/projects/*/clips/
+shortforge/projects/*/moment_renders/
+shortforge/projects/*/moment_transcripts/
+shortforge/projects/*/moments/
+shortforge/projects/*/transcripts/
+shortforge/projects/*/top_ranked/
+shortforge/projects/*/scene_renders/
+shortforge/projects/*/final_selects/
+shortforge/projects/*/archive_recovery/
+shortforge/projects/*/exports/
+shortforge/projects/*/reports/*.zip
+
+# review runtime media
+web/shorts_review/assets/
+web/shorts_review/media/
+
+# backups and temp variants
+*.backup.*
+*.relax_backup.*
+*.window_backup.*
+*.semanticfix.*
+*.ephemeral_backup

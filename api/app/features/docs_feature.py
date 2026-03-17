@@ -1,9 +1,12 @@
 from __future__ import annotations
+from pathlib import Path
 
 from typing import Any, Dict
 
 from api.app.core.artifact_contracts import build_artifact
+from api.app.core.docs_emitters import emit_docs_bundle
 from api.app.core.models import FeatureResult, PlanOut, PlanStep
+from api.app.core.artifact_store import register_artifact
 
 
 def plan(inp: Dict[str, Any]) -> PlanOut:
@@ -44,14 +47,25 @@ def run(inp: Dict[str, Any], reused_pattern: str | None = None) -> FeatureResult
 - pattern: {reused_pattern or "default_docs_v1"}
 """
 
+    bundle = emit_docs_bundle(prompt, content, goal)
+
+    register_artifact(
+        artifact_id=Path(bundle["root"]).parts[1] if len(Path(bundle["root"]).parts) > 1 else Path(bundle["root"]).name,
+        feature="docs",
+        root=bundle["root"],
+        files=bundle["files"],
+        meta={"pattern_used": reused_pattern or "default"},
+    )
+
     return FeatureResult(
         ok=True,
         feature="docs",
         type="markdown",
         content=content,
-        files=[],
+        files=bundle["files"],
         meta={
             "pattern_used": reused_pattern or "default_docs_v1",
             "artifact": build_artifact("docs", content),
+            "bundle": bundle,
         },
     )

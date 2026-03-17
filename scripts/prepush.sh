@@ -46,6 +46,10 @@ if test -x "$ROOT/scripts/smoke_project_zip.sh"; then
   "$ROOT/scripts/smoke_project_zip.sh" >/dev/null
 fi
 
+if test -x "$ROOT/scripts/smoke_builder_plan.sh"; then
+  "$ROOT/scripts/smoke_builder_plan.sh" >/dev/null
+fi
+
 if test -x "$ROOT/scripts/smoke_manifest_regression.sh"; then
   "$ROOT/scripts/smoke_manifest_regression.sh" >/dev/null
 fi
@@ -67,3 +71,38 @@ fi
 
 test -x "$ROOT/scripts/smoke_library_budget.sh"
 "$ROOT/scripts/smoke_library_budget.sh"
+
+if test -x "$ROOT/scripts/smoke_builder_scaffold.sh"; then
+  "$ROOT/scripts/smoke_builder_scaffold.sh" >/dev/null
+fi
+
+
+test -x "$ROOT/scripts/smoke_code_generate.sh" && "$ROOT/scripts/smoke_code_generate.sh"
+test -x "$ROOT/scripts/smoke_docs_generate.sh" && "$ROOT/scripts/smoke_docs_generate.sh"
+test -x "$ROOT/scripts/smoke_shorts_local.sh" && "$ROOT/scripts/smoke_shorts_local.sh"
+test -x "$ROOT/scripts/smoke_shorts_real_package.sh" && "$ROOT/scripts/smoke_shorts_real_package.sh"
+test -x "$ROOT/scripts/smoke_shorts_10pack.sh" && "$ROOT/scripts/smoke_shorts_10pack.sh"
+test -x "$ROOT/scripts/smoke_shorts_export_zip.sh" && "$ROOT/scripts/smoke_shorts_export_zip.sh"
+test -x "$ROOT/scripts/smoke_shorts_visuals.sh" && "$ROOT/scripts/smoke_shorts_visuals.sh"
+test -x "$ROOT/scripts/smoke_shorts_zip_contents.sh" && "$ROOT/scripts/smoke_shorts_zip_contents.sh"
+test -x "$ROOT/scripts/smoke_shorts_prompt_quality.sh" && "$ROOT/scripts/smoke_shorts_prompt_quality.sh"
+test -x "$ROOT/scripts/smoke_shorts_packaging_brain.sh" && "$ROOT/scripts/smoke_shorts_packaging_brain.sh"
+test -x "$ROOT/scripts/smoke_shorts_generate.sh" && "$ROOT/scripts/smoke_shorts_generate.sh"
+test -x "$ROOT/scripts/smoke_image_generate.sh" && "$ROOT/scripts/smoke_image_generate.sh"
+test -x "$ROOT/scripts/smoke_game_generate.sh" && "$ROOT/scripts/smoke_game_generate.sh"
+test -x "$ROOT/scripts/smoke_animation_generate.sh" && "$ROOT/scripts/smoke_animation_generate.sh"
+test -x "$ROOT/scripts/smoke_text_generate.sh" && "$ROOT/scripts/smoke_text_generate.sh"
+test -x "$ROOT/scripts/smoke_features_registry.sh" && "$ROOT/scripts/smoke_features_registry.sh"
+test -x "$ROOT/scripts/smoke_generate_generic.sh" && "$ROOT/scripts/smoke_generate_generic.sh"
+test -x "$ROOT/scripts/smoke_artifacts.sh" && "$ROOT/scripts/smoke_artifacts.sh"
+test -x "$ROOT/scripts/smoke_artifact_export.sh" && "$ROOT/scripts/smoke_artifact_export.sh"
+test -x "$ROOT/scripts/smoke_artifact_registry_backfill.sh" && "$ROOT/scripts/smoke_artifact_registry_backfill.sh"
+test -x "$ROOT/scripts/smoke_artifact_detail.sh" && "$ROOT/scripts/smoke_artifact_detail.sh"
+
+test -x "$ROOT/scripts/smoke_moment_manifest.sh" && "$ROOT/scripts/smoke_moment_manifest.sh"
+
+test -x "$ROOT/scripts/smoke_moment_mode.sh" && "$ROOT/scripts/smoke_moment_mode.sh"
+
+test -x "$ROOT/scripts/smoke_moment_dispatcher.sh" && "$ROOT/scripts/smoke_moment_dispatcher.sh"
+
+test -x "$ROOT/scripts/smoke_moment_package.sh" && "$ROOT/scripts/smoke_moment_package.sh"

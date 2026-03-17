@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "patterns": [],
+  "caption_styles": [
+    {
+      "id": "clean_lower_third",
+      "status": "experimental",
+      "font": "Arial",
+      "fontsize": 20,
+      "outline": 4,
+      "shadow": 1,
+      "alignment": 2,
+      "margin_v": 130
+    }
+  ],
+  "framing_styles": [
+    {
+      "id": "vertical_clean_crop",
+      "status": "experimental",
+      "mode": "scale_crop_1080x1920"
+    }
+  ]
+}
